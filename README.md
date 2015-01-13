@@ -19,7 +19,7 @@ The DICOM Manipulation Tools for MATLAB are a compilation of functions that read
 
 ## Installation and Use
 
-To install the DICOM Manipulation Tools, copy all MATLAB .m files and subfolders from this repository into your MATLAB path.  If installing as a submodule into another git repository, execute `git submodule add https://github.com/mwgeurts/dicom_tools`.
+To install the DICOM Manipulation Tools, copy all MATLAB .m files from this repository into your MATLAB path.  If installing as a submodule into another git repository, execute `git submodule add https://github.com/mwgeurts/dicom_tools`.
 
 ## Compatibility and Requirements
 
