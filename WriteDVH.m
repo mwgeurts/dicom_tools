@@ -60,6 +60,7 @@ function varargout = WriteDVH(varargin)
 %   % Compute but do not save the DVH to a file
 %   dvh = WriteDVH(image, dose);
 %
+% Author: Mark Geurts, mark.w.geurts@gmail.com
 % Copyright (C) 2014 University of Wisconsin Board of Regents
 %
 % This program is free software: you can redistribute it and/or modify it 
