@@ -57,6 +57,19 @@ function structures = LoadDICOMStructures(varargin)
 % You should have received a copy of the GNU General Public License along 
 % with this program. If not, see http://www.gnu.org/licenses/.
   
+% Check if MATLAB can find dicominfo (Image Processing Toolbox)
+if exist('dicominfo', 'file') ~= 2
+    
+    % If not, throw an error
+    if exist('Event', 'file') == 2
+        Event(['The Image Processing Toolbox cannot be found and is ', ...
+            'required by this function.'], 'ERROR');
+    else
+        error(['The Image Processing Toolbox cannot be found and is ', ...
+            'required by this function.']);
+    end
+end
+
 % Execute in try/catch statement
 try
 
