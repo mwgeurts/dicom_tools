@@ -285,6 +285,9 @@ for i = 1:size(varargin{1}.data, 3)
     % Specify slice location (in mm)
     info.SliceLocation = (i - 1) * -varargin{1}.width(3) * 10; % mm
     
+    % Update image position to slice location
+    info.ImagePositionPatient(3) = info.SliceLocation;
+    
     % Write DICOM file using dicomwrite()
     dicomwrite(flip(rot90(uint16(varargin{1}.data(:,:,i)), 3), 2), ...
         [varargin{2}, sprintf('_%03i.dcm', i)], info, ...
@@ -315,6 +318,3 @@ catch err
         rethrow(err);
     end
 end
-
-
-
