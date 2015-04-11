@@ -89,15 +89,33 @@ info.ImplementationVersionName = 'dcm4che-2.0';
 info.SpecificCharacterSet = 'ISO_IR 100';
 
 % Specify class UID based on provided class
-if nargin == 3 && isfield(varargin{3}, 'classUID')
+if nargin == 3 && isfield(varargin{3}, 'classUID') && ...
+        isfield(varargin{3}, 'type')
     info.MediaStorageSOPClassUID = varargin{3}.classUID;
-
+    info.Modality = varargin{3}.type;
+    
 % Otherwise, assume it is CT
 else
     info.MediaStorageSOPClassUID = '1.2.840.10008.5.1.4.1.1.2';
     info.Modality = 'CT';
 end
+
+% Copy SOP class UID from Media
 info.SOPClassUID = info.MediaStorageSOPClassUID;
+
+% If minimum image value is below zero, assume image is in HU and add 1024
+if min(min(min(varargin{1}.data))) < 0
+    varargin{1}.data = varargin{1}.data + 1024;
+end
+
+% Set intercept and slope based on modality
+if strcmp(info.MediaStorageSOPClassUID, '1.2.840.10008.5.1.4.1.1.2')
+    info.RescaleIntercept = -1024;
+    info.RescaleSlope = 1;
+else
+    info.RescaleIntercept = 0;
+    info.RescaleSlope = 1;
+end
 
 % Generate creation date/time
 t = now;
@@ -289,16 +307,6 @@ info.BitsAllocated = 16;
 info.BitsStored = 16;
 info.HighBit = 15;
 info.PixelRepresentation = 0;
-
-% If minimum image value is below zero, assume image is in HU and add 1024
-if min(min(min(varargin{1}.data))) < 0
-    varargin{1}.data = varargin{1}.data + 1024;
-    info.RescaleIntercept = -1024;
-    info.RescaleSlope = 1;
-else
-    info.RescaleIntercept = 0;
-    info.RescaleSlope = 1;
-end
 
 % Loop through CT Images
 for i = 1:size(varargin{1}.data, 3)
