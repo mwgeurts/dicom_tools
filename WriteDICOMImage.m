@@ -259,6 +259,15 @@ elseif strcmp(position, 'HFP')
     info.ImageOrientationPatient = [1;0;0;0;-1;0];
 elseif strcmp(position, 'FFP')
     info.ImageOrientationPatient = [-1;0;0;0;-1;0];
+
+% If none of the above, throw an error
+else
+    if exist('Event', 'file') == 2
+        Event(['Patient position tag ',position,' is not supported'], ...
+            'ERROR');
+    else
+        error(['Patient position tag ',position,' is not supported']);
+    end
 end
 
 % Specify number of images
