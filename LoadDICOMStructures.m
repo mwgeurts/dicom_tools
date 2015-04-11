@@ -241,6 +241,9 @@ for item = fieldnames(info.ROIContourSequence)'
         % Inititalize structure volume
         structures{n}.volume = 0;
         
+        % Initialize points cell array
+        structures{n}.points = cell();
+        
         % Loop through each ContourSequence
         for subitem = fieldnames(info.ROIContourSequence.(...
                 item{1}).ContourSequence)'
@@ -260,6 +263,10 @@ for item = fieldnames(info.ROIContourSequence)'
                 points = reshape(info.ROIContourSequence.(...
                     item{1}).ContourSequence.(subitem{1}).ContourData, ...
                     3, [])' / 10;
+                
+                % Store raw points
+                structures{n}.points{length(structures{n}.points)+1} = ...
+                    points;
                 
                 % Determine slice index by searching IEC-Y index using 
                 % nearest neighbor interpolation
