@@ -240,6 +240,27 @@ else
     info.FrameOfReferenceUID = '';
 end
 
+% Specify image orientation
+if nargin == 3 && isfield(varargin{3}, 'position')
+    position = varargin{3}.position;
+
+% If not provided, assume HFS
+else
+    position = 'HFS';
+end
+
+% Write image orientation and patient position
+info.PatientPosition = position;
+if strcmp(position, 'HFS')
+    info.ImageOrientationPatient = [1;0;0;0;1;0];
+elseif strcmp(position, 'FFS')
+    info.ImageOrientationPatient = [-1;0;0;0;1;0];
+elseif strcmp(position, 'HFP')
+    info.ImageOrientationPatient = [1;0;0;0;-1;0];
+elseif strcmp(position, 'FFP')
+    info.ImageOrientationPatient = [-1;0;0;0;-1;0];
+end
+
 % Specify number of images
 info.ImagesInAcquisition = size(varargin{1}.data, 3);
 
