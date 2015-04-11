@@ -293,6 +293,11 @@ info.PixelRepresentation = 0;
 % If minimum image value is below zero, assume image is in HU and add 1024
 if min(min(min(varargin{1}.data))) < 0
     varargin{1}.data = varargin{1}.data + 1024;
+    info.RescaleIntercept = -1024;
+    info.RescaleSlope = 1;
+else
+    info.RescaleIntercept = 0;
+    info.RescaleSlope = 1;
 end
 
 % Loop through CT Images
@@ -313,7 +318,8 @@ for i = 1:size(varargin{1}.data, 3)
     info.SOPInstanceUID = info.MediaStorageSOPInstanceUID;
     
     % Specify slice location (in mm)
-    info.SliceLocation = (i - 1) * -varargin{1}.width(3) * 10; % mm
+    info.SliceLocation = (varargin{1}.start(3) + (i - 1) * ...
+        varargin{1}.width(3)) * 10; % mm
     
     % Update image position to slice location
     info.ImagePositionPatient(3) = -info.SliceLocation;
