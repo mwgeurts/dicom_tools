@@ -265,7 +265,8 @@ for i = 1:length(varargin{1})
     % Create structure ROI sequence entry
     info.StructureSetROISequence.(sprintf('Item_%i', i)).ROINumber = i;
     info.StructureSetROISequence.(sprintf('Item_%i', i))...
-        .ReferencedFrameOfReferenceUID = refUID;
+        .ReferencedFrameOfReferenceUID = ...
+        info.ReferencedFrameOfReferenceSequence.Item_1.FrameOfReferenceUID;
     info.StructureSetROISequence.(sprintf('Item_%i', i)).ROIName = ...
         varargin{1}{i}.name;
 
