@@ -302,8 +302,10 @@ for i = 1:length(varargin{1})
             size(varargin{1}{i}.points{j}, 1);
         
         % Flip points y/z sign
-        varargin{1}{i}.points{j} = varargin{1}{i}.points{j} .* ...
-            repmat([1,-1,-1], size(varargin{1}{i}.points{j},1), 1);
+        if ~isempty(varargin{1}{i}.points{j})
+            varargin{1}{i}.points{j} = varargin{1}{i}.points{j} .* ...
+                repmat([1,-1,-1], size(varargin{1}{i}.points{j},1), 1);
+        end
         
         % Specify points
         info.ROIContourSequence.(sprintf('Item_%i', i))...
@@ -341,6 +343,3 @@ catch err
         rethrow(err);
     end
 end
-
-
-
