@@ -234,14 +234,14 @@ info.SliceThickness = varargin{1}.width(3) * 10; % mm
 if nargin == 3 && isfield(varargin{3}, 'studyUID')
     info.StudyInstanceUID = varargin{3}.studyUID;
 else
-    info.StudyInstanceUID = '';
+    info.StudyInstanceUID = dicomuid;
 end
 
 % Specify series UID
 if nargin == 3 && isfield(varargin{3}, 'seriesUID')
     info.SeriesInstanceUID = varargin{3}.seriesUID;
 else
-    info.SeriesInstanceUID = '';
+    info.SeriesInstanceUID = dicomuid;
 end
 
 % Specify image position (in mm)
@@ -254,8 +254,10 @@ info.ImagePositionPatient(2) = -(varargin{1}.start(2) + ...
 % Specify frame of reference UID
 if nargin == 3 && isfield(varargin{3}, 'frameRefUID')
     info.FrameOfReferenceUID = varargin{3}.frameRefUID;
+
+% Otherwise, generate unique frame of reference ID
 else
-    info.FrameOfReferenceUID = '';
+    info.FrameOfReferenceUID = dicomuid;
 end
 
 % Specify image orientation
@@ -311,13 +313,9 @@ info.PixelRepresentation = 0;
 % Loop through CT Images
 for i = 1:size(varargin{1}.data, 3)
     
-    % If UID information has been provided
+    % Specify slice instance UID
     if nargin == 3 && isfield(varargin{3}, 'instanceUIDs')
-       
-        % Use stored instance UID
-        info.MediaStorageSOPInstanceUID = varargin{3}.instanceUIDs{i};
-    
-    % Otherwise, generate unique instance ID
+        info.MediaStorageSOPInstanceUID = varargin{3}.instanceUIDs{i};    
     else
         info.MediaStorageSOPInstanceUID = dicomuid;
     end

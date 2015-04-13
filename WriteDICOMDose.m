@@ -235,14 +235,14 @@ info.SliceThickness = varargin{1}.width(3) * 10; % mm
 if nargin == 3 && isfield(varargin{3}, 'studyUID')
     info.StudyInstanceUID = varargin{3}.studyUID;
 else
-    info.StudyInstanceUID = '';
+    info.StudyInstanceUID = dicomuid;
 end
 
 % Specify series UID
-if nargin == 3 && isfield(varargin{3}, 'seriesUID')
-    info.SeriesInstanceUID = varargin{3}.seriesUID;
+if nargin == 3 && isfield(varargin{3}, 'doseSeriesUID')
+    info.SeriesInstanceUID = varargin{3}.doseSeriesUID;
 else
-    info.SeriesInstanceUID = '';
+    info.SeriesInstanceUID = dicomuid;
 end
 
 % Specify image position (in mm)
@@ -256,7 +256,7 @@ info.ImagePositionPatient(2) = -(varargin{1}.start(2) + ...
 if nargin == 3 && isfield(varargin{3}, 'frameRefUID')
     info.FrameOfReferenceUID = varargin{3}.frameRefUID;
 else
-    info.FrameOfReferenceUID = '';
+    info.FrameOfReferenceUID = dicomuid;
 end
 
 % Specify number of images
