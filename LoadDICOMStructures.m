@@ -18,9 +18,9 @@ function structures = LoadDICOMStructures(varargin)
 %       not be loaded)
 %
 % The following variable is returned upon succesful completion:
-%   structures: cell array of structure names, color, frameRefUID, and 3D 
-%       mask array of same size as reference image containing fraction of 
-%       voxel inclusion in structure
+%   structures: cell array of structure names, color, start, width, 
+%       dimensions, frameRefUID, and 3D mask array of same size as 
+%       reference image containing fraction of voxel inclusion in structure
 %
 % Below are examples of how this function is used:
 %
@@ -266,7 +266,7 @@ for item = fieldnames(info.ROIContourSequence)'
                 
                 % Store raw points
                 structures{n}.points{length(structures{n}.points)+1} = ...
-                    points;
+                    points .* repmat([1,-1,-1], size(points,1), 1);
                 
                 % Determine slice index by searching IEC-Y index using 
                 % nearest neighbor interpolation
@@ -322,6 +322,11 @@ for item = fieldnames(info.ROIContourSequence)'
         structures{n}.volume = sum(sum(sum(structures{n}.mask))) * ...
             prod(varargin{3}.width);
        
+        % Copy structure width, start, and dimensions arrays from image
+        structures{n}.width = varargin{3}.width;
+        structures{n}.start = varargin{3}.start;
+        structures{n}.dimensions = varargin{3}.dimensions;
+        
         % Check if at least one voxel in the mask was set to true
         if max(max(max(structures{n}.mask))) == 0
             
