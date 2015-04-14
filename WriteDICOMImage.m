@@ -276,9 +276,9 @@ if strcmp(position, 'HFS')
 elseif strcmp(position, 'FFS')
     info.ImageOrientationPatient = [-1;0;0;0;1;0];
 elseif strcmp(position, 'HFP')
-    info.ImageOrientationPatient = [1;0;0;0;-1;0];
-elseif strcmp(position, 'FFP')
     info.ImageOrientationPatient = [-1;0;0;0;-1;0];
+elseif strcmp(position, 'FFP')
+    info.ImageOrientationPatient = [1;0;0;0;-1;0];
 
 % If none of the above, throw an error
 else
@@ -325,7 +325,7 @@ for i = 1:size(varargin{1}.data, 3)
     
     % Specify slice location (in mm)
     info.SliceLocation = (varargin{1}.start(3) + (i - 1) * ...
-        varargin{1}.width(3)) * 10 * info.ImageOrientationPatient(1); % mm
+        varargin{1}.width(3)) * 10; % mm
     
     % Update image position to slice location
     info.ImagePositionPatient(3) = -info.SliceLocation;

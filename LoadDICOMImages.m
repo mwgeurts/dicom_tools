@@ -229,7 +229,8 @@ image.width(1) = info.PixelSpacing(1) / 10;
 image.width(2) = info.PixelSpacing(2) / 10;
 
 % If patient is Head First
-if info.ImageOrientationPatient(1) == 1
+if isequal(info.ImageOrientationPatient, [1;0;0;0;1;0]) || ...
+        isequal(info.ImageOrientationPatient, [-1;0;0;0;-1;0]) 
     
     % Store patient position
     if info.ImageOrientationPatient(5) == 1
@@ -244,8 +245,9 @@ if info.ImageOrientationPatient(1) == 1
     % Store start voxel IEC-Y coordinate, in cm
     image.start(3) = -max(sliceLocations) / 10;
     
-% Otherwise, if the patient is Feet First (currently not supported)
-elseif info.ImageOrientationPatient(1) == -1
+% Otherwise, if the patient is Feet First
+elseif isequal(info.ImageOrientationPatient, [-1;0;0;0;1;0]) || ...
+        isequal(info.ImageOrientationPatient, [1;0;0;0;-1;0]) 
     
     % Store patient position
     if info.ImageOrientationPatient(5) == 1
