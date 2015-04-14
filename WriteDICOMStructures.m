@@ -307,6 +307,20 @@ for i = 1:length(varargin{1})
                 repmat([1,-1,-1], size(varargin{1}{i}.points{j},1), 1);
         end
         
+        % Adjust image position by orientation
+        if nargin == 3 && isfield(varargin{3}, 'position')
+            if strcmp(position, 'FFS')
+                varargin{1}{i}.points{j} = varargin{1}{i}.points{j} .* ...
+                    repmat([1,-1,1], size(varargin{1}{i}.points{j},1), 1);
+            elseif strcmp(position, 'HFP')
+                varargin{1}{i}.points{j} = varargin{1}{i}.points{j} .* ...
+                    repmat([-1,-1,-1], size(varargin{1}{i}.points{j},1), 1);
+            elseif strcmp(position, 'FFP')
+                varargin{1}{i}.points{j} = varargin{1}{i}.points{j} .* ...
+                    repmat([-1,1,-1], size(varargin{1}{i}.points{j},1), 1);
+            end
+        end
+        
         % Specify points
         info.ROIContourSequence.(sprintf('Item_%i', i))...
             .ContourSequence.(sprintf('Item_%i', j)).ContourData = ...

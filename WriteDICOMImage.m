@@ -267,11 +267,11 @@ info.PatientPosition = position;
 if strcmp(position, 'HFS')
     info.ImageOrientationPatient = [1;0;0;0;1;0];
 elseif strcmp(position, 'FFS')
-    info.ImageOrientationPatient = [-1;0;0;0;1;0];
+    info.ImageOrientationPatient = [1;0;0;0;-1;0];
 elseif strcmp(position, 'HFP')
     info.ImageOrientationPatient = [-1;0;0;0;-1;0];
 elseif strcmp(position, 'FFP')
-    info.ImageOrientationPatient = [1;0;0;0;-1;0];
+    info.ImageOrientationPatient = [-1;0;0;0;1;0];
 
 % If none of the above, throw an error
 else
@@ -291,12 +291,9 @@ info.ImagePositionPatient(2) = -(varargin{1}.start(2) + ...
     varargin{1}.width(2) * (size(varargin{1}.data,2)-1)) * 10; % mm
 
 % Adjust image position by orientation
-info.ImagePositionPatient(1) = info.ImagePositionPatient(1) * ...
-    info.ImageOrientationPatient(1);
-info.ImagePositionPatient(2) = info.ImagePositionPatient(2) * ...
-    info.ImageOrientationPatient(5);
-info.ImagePositionPatient(3) = info.ImagePositionPatient(3) * ...
-    info.ImageOrientationPatient(1);
+info.ImagePositionPatient = info.ImagePositionPatient(1) .* ...
+    [info.ImageOrientationPatient(1); info.ImageOrientationPatient(5); ...
+     info.ImageOrientationPatient(1)];
 
 % Specify number of images
 info.ImagesInAcquisition = size(varargin{1}.data, 3);

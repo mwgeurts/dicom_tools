@@ -252,6 +252,17 @@ info.ImagePositionPatient = varargin{1}.start' .* [1;1;-1] * 10; % mm
 info.ImagePositionPatient(2) = -(varargin{1}.start(2) + ...
     varargin{1}.width(2) * (size(varargin{1}.data,2)-1)) * 10; % mm
 
+% Adjust image position by orientation
+if nargin == 3 && isfield(varargin{3}, 'position')
+    if strcmp(position, 'FFS')
+        info.ImagePositionPatient = info.ImagePositionPatient .* [1;-1;1];
+    elseif strcmp(position, 'HFP')
+        info.ImagePositionPatient = info.ImagePositionPatient .* [-1;-1;-1];
+    elseif strcmp(position, 'FFP')
+        info.ImagePositionPatient = info.ImagePositionPatient .* [-1;1;-1];
+    end
+end
+
 % Specify frame of reference UID
 if nargin == 3 && isfield(varargin{3}, 'frameRefUID')
     info.FrameOfReferenceUID = varargin{3}.frameRefUID;
