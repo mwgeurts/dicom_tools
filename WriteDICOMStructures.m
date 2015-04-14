@@ -315,10 +315,10 @@ for i = 1:length(varargin{1})
                     repmat([1,-1,1], size(varargin{1}{i}.points{j},1), 1);
             elseif strcmp(varargin{3}.position, 'HFP')
                 varargin{1}{i}.points{j} = varargin{1}{i}.points{j} .* ...
-                    repmat([-1,-1,-1], size(varargin{1}{i}.points{j},1), 1);
+                    repmat([-1,-1,1], size(varargin{1}{i}.points{j},1), 1);
             elseif strcmp(varargin{3}.position, 'FFP')
                 varargin{1}{i}.points{j} = varargin{1}{i}.points{j} .* ...
-                    repmat([-1,1,-1], size(varargin{1}{i}.points{j},1), 1);
+                    repmat([-1,1,1], size(varargin{1}{i}.points{j},1), 1);
             end
         end
         
