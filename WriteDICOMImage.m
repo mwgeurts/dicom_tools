@@ -244,13 +244,6 @@ else
     info.SeriesInstanceUID = dicomuid;
 end
 
-% Specify image position (in mm)
-info.ImagePositionPatient = varargin{1}.start' .* [1;1;-1] * 10; % mm
-
-% Adjust vertical position back to IEC
-info.ImagePositionPatient(2) = -(varargin{1}.start(2) + ...
-    varargin{1}.width(2) * (size(varargin{1}.data,2)-1)) * 10; % mm
-
 % Specify frame of reference UID
 if nargin == 3 && isfield(varargin{3}, 'frameRefUID')
     info.FrameOfReferenceUID = varargin{3}.frameRefUID;
@@ -289,6 +282,19 @@ else
         error(['Patient position tag ',position,' is not supported']);
     end
 end
+
+% Specify image position (in mm)
+info.ImagePositionPatient = varargin{1}.start' .* [1;1;-1] * 10; % mm
+
+% Adjust vertical position back to IEC
+info.ImagePositionPatient(2) = -(varargin{1}.start(2) + ...
+    varargin{1}.width(2) * (size(varargin{1}.data,2)-1)) * 10; % mm
+
+% Adjust image position by orientation
+info.ImagePositionPatient(1) = info.ImagePositionPatient(1) * ...
+    info.ImageOrientationPatient(1);
+info.ImagePositionPatient(3) = info.ImagePositionPatient(3) * ...
+    info.ImageOrientationPatient(5);
 
 % Specify number of images
 info.ImagesInAcquisition = size(varargin{1}.data, 3);
