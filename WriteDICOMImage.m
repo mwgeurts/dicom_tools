@@ -253,35 +253,13 @@ else
     info.FrameOfReferenceUID = dicomuid;
 end
 
-% Specify image orientation
+% Specify patient position
 if nargin == 3 && isfield(varargin{3}, 'position')
-    position = varargin{3}.position;
-
-% If not provided, assume HFS
-else
-    position = 'HFS';
+    info.PatientPosition = varargin{3}.position;
 end
 
-% Write image orientation and patient position
-info.PatientPosition = position;
-if strcmp(position, 'HFS')
-    info.ImageOrientationPatient = [1;0;0;0;1;0];
-elseif strcmp(position, 'FFS')
-    info.ImageOrientationPatient = [1;0;0;0;-1;0];
-elseif strcmp(position, 'HFP')
-    info.ImageOrientationPatient = [-1;0;0;0;-1;0];
-elseif strcmp(position, 'FFP')
-    info.ImageOrientationPatient = [-1;0;0;0;1;0];
-
-% If none of the above, throw an error
-else
-    if exist('Event', 'file') == 2
-        Event(['Patient position tag ',position,' is not supported'], ...
-            'ERROR');
-    else
-        error(['Patient position tag ',position,' is not supported']);
-    end
-end
+% Specify image orientation
+info.ImageOrientationPatient = [1;0;0;0;1;0];
 
 % Specify image position (in mm)
 info.ImagePositionPatient = varargin{1}.start' .* [1;1;-1] * 10; % mm
@@ -289,11 +267,6 @@ info.ImagePositionPatient = varargin{1}.start' .* [1;1;-1] * 10; % mm
 % Adjust vertical position back to IEC
 info.ImagePositionPatient(2) = -(varargin{1}.start(2) + ...
     varargin{1}.width(2) * (size(varargin{1}.data,2)-1)) * 10; % mm
-
-% Adjust image position by orientation
-info.ImagePositionPatient = info.ImagePositionPatient(1) .* ...
-    [info.ImageOrientationPatient(1); info.ImageOrientationPatient(5); ...
-     info.ImageOrientationPatient(1)];
 
 % Specify number of images
 info.ImagesInAcquisition = size(varargin{1}.data, 3);
