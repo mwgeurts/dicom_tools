@@ -231,9 +231,11 @@ image.width(2) = info.PixelSpacing(2) / 10;
 % If patient is Head First
 if info.ImageOrientationPatient(1) == 1
     
-    % Log orientation
-    if exist('Event', 'file') == 2
-        Event('Patient position identified as Head First');
+    % Store patient position
+    if info.ImageOrientationPatient(5) == 1
+        image.position = 'HFS';
+    elseif info.ImageOrientationPatient(5) == -1
+        image.position = 'HFP';
     end
 
     % Sort sliceLocations vector in descending order
@@ -245,22 +247,32 @@ if info.ImageOrientationPatient(1) == 1
 % Otherwise, if the patient is Feet First (currently not supported)
 elseif info.ImageOrientationPatient(1) == -1
     
-    %Event('Patient position identified as Feet First');
-    %[~,indices] = sort(sliceLocations, 'ascend');
+    % Store patient position
+    if info.ImageOrientationPatient(5) == 1
+        image.position = 'FFS';
+    elseif info.ImageOrientationPatient(5) == -1
+        image.position = 'FFP';
+    end
+    
+    % % Sort sliceLocations vector in ascending order
+    % [~,indices] = sort(sliceLocations, 'ascend');
 
     % Store start voxel IEC-Y coordinate, in cm
     image.start(3) = min(sliceLocations) / 10;
-    
-    % Throw an error as the image type is not currently supported/tested
-    Event('Feet first data sets are not currently supported', 'ERROR');
+end 
 
-% Otherwise, error as the image orientation is neither
-else
+% If the position wasn't identified, error
+if ~isfield(image, 'position')
+    
     if exist('Event', 'file') == 2
-        Event('The DICOM images do not have a standard orientation', ...
-            'ERROR');
+        Event('The patient position could not be determined', 'ERROR');
     else
-        error('The DICOM images do not have a standard orientation');
+        error('The patient position could not be determined');
+    end
+else
+    % Log orientation
+    if exist('Event', 'file') == 2
+        Event(['Patient position identified as ', image.position]);
     end
 end
 
