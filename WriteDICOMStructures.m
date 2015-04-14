@@ -308,7 +308,8 @@ for i = 1:length(varargin{1})
         end
         
         % Adjust image position by orientation
-        if nargin == 3 && isfield(varargin{3}, 'position')
+        if nargin == 3 && isfield(varargin{3}, 'position') && ...
+                ~isempty(varargin{1}{i}.points{j})
             if strcmp(varargin{3}.position, 'FFS')
                 varargin{1}{i}.points{j} = varargin{1}{i}.points{j} .* ...
                     repmat([1,-1,1], size(varargin{1}{i}.points{j},1), 1);
