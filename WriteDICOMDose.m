@@ -254,11 +254,11 @@ info.ImagePositionPatient(2) = -(varargin{1}.start(2) + ...
 
 % Adjust image position by orientation
 if nargin == 3 && isfield(varargin{3}, 'position')
-    if strcmp(position, 'FFS')
+    if strcmp(varargin{3}.position, 'FFS')
         info.ImagePositionPatient = info.ImagePositionPatient .* [1;-1;1];
-    elseif strcmp(position, 'HFP')
+    elseif strcmp(varargin{3}.position, 'HFP')
         info.ImagePositionPatient = info.ImagePositionPatient .* [-1;-1;-1];
-    elseif strcmp(position, 'FFP')
+    elseif strcmp(varargin{3}.position, 'FFP')
         info.ImagePositionPatient = info.ImagePositionPatient .* [-1;1;-1];
     end
 end
