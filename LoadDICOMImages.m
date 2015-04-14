@@ -255,7 +255,7 @@ elseif info.ImageOrientationPatient(1) == -1
     end
     
     % % Sort sliceLocations vector in ascending order
-    % [~,indices] = sort(sliceLocations, 'ascend');
+    [~,indices] = sort(sliceLocations, 'ascend');
 
     % Store start voxel IEC-Y coordinate, in cm
     image.start(3) = min(sliceLocations) / 10;
