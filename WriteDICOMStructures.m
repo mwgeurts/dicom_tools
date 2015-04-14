@@ -138,7 +138,7 @@ if nargin == 3 && isfield(varargin{3}, 'patientName')
     
     % Specify patient sex
     if isfield(varargin{3}, 'patientSex')
-        info.PatientSex = varargin{3}.patientSex;
+        info.PatientSex = upper(varargin{3}.patientSex(1));
     else
         info.PatientSex = '';
     end
