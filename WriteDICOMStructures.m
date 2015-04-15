@@ -193,8 +193,8 @@ else
 end
 
 % Specify structure series UID
-if nargin == 3 && isfield(varargin{3}, 'structSeriesUID')
-    info.SeriesInstanceUID = varargin{3}.structSeriesUID;
+if nargin == 3 && isfield(varargin{3}, 'structureSetUID')
+    info.SeriesInstanceUID = varargin{3}.structureSetUID;
 else
     info.SeriesInstanceUID = dicomuid;
 end
