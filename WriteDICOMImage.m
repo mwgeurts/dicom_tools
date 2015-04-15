@@ -118,7 +118,11 @@ else
 end
 
 % Generate creation date/time
-t = now;
+if nargin == 3 && isfield(varargin{3}, 'timestamp')
+    t = varargin{3}.timestamp;
+else
+    t = now;
+end
 
 % Specify creation date/time
 info.InstanceCreationDate = datestr(t, 'yyyymmdd');
