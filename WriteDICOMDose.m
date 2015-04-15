@@ -299,6 +299,14 @@ info.TissueHeterogeneityCorrection = 'ROI_OVERRIDE';
 % Compute and specify dose scaling factor
 info.DoseGridScaling = max(max(max(varargin{1}.data))) / 65535;
 
+% Specify referenced structure series UID
+if nargin == 3 && isfield(varargin{3}, 'structSeriesUID')
+    info.ReferencedStructureSetSequence.Item_1.ReferencedSOPClassUID = ...
+        '1.2.840.10008.5.1.4.1.1.481.3';
+    info.ReferencedStructureSetSequence.Item_1.ReferencedSOPInstanceUID = ...
+        varargin{3}.structSeriesUID;
+end
+
 % Write DICOM file using dicomwrite()
 dicomwrite(reshape(flip(rot90(uint16(varargin{1}.data/...
     info.DoseGridScaling), 3), 2), [size(varargin{1}.data, 2) ...
