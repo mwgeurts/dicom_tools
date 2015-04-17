@@ -67,6 +67,13 @@ info.MediaStorageSOPClassUID = '1.2.840.10008.5.1.4.1.1.481.3';
 info.SOPClassUID = info.MediaStorageSOPClassUID;
 info.Modality = 'RTSTRUCT';
 
+% Specify unique instance UID
+info.MediaStorageSOPInstanceUID = dicomuid;
+info.SOPInstanceUID = info.MediaStorageSOPInstanceUID;
+if exist('Event', 'file') == 2
+    Event(['SOPInstanceUID set to ', info.SOPInstanceUID]);
+end
+
 % Generate creation date/time
 if nargin == 3 && isfield(varargin{3}, 'timestamp')
     t = varargin{3}.timestamp;
@@ -197,6 +204,9 @@ if nargin == 3 && isfield(varargin{3}, 'structureSetUID')
     info.SeriesInstanceUID = varargin{3}.structureSetUID;
 else
     info.SeriesInstanceUID = dicomuid;
+end
+if exist('Event', 'file') == 2
+    Event(['SOPInstanceUID set to ', info.SOPInstanceUID]);
 end
 
 % Specify referenced class UID if one exists
