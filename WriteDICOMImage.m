@@ -147,6 +147,13 @@ else
     info.SeriesDescription = '';
 end
 
+% Specify study description (optional)
+if nargin == 3 && isfield(varargin{3}, 'studyDescription')
+    info.StudyDescription = varargin{3}.studyDescription;
+else
+    info.StudyDescription = '';
+end
+
 % Specify patient info (assume that if name isn't provided, nothing is
 % provided)
 if nargin == 3 && isfield(varargin{3}, 'patientName')

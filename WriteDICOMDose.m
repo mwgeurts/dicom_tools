@@ -129,6 +129,13 @@ else
     info.SeriesDescription = '';
 end
 
+% Specify study description (optional)
+if nargin == 3 && isfield(varargin{3}, 'studyDescription')
+    info.StudyDescription = varargin{3}.studyDescription;
+else
+    info.StudyDescription = '';
+end
+
 % Specify referenced image sequences (optional)
 if nargin == 3 && isfield(varargin{3}, 'instanceUIDs') && ...
         isfield(varargin{3}, 'classUID')

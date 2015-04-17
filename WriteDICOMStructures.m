@@ -101,6 +101,13 @@ else
     info.SeriesDescription = '';
 end
 
+% Specify study description (optional)
+if nargin == 3 && isfield(varargin{3}, 'studyDescription')
+    info.StudyDescription = varargin{3}.studyDescription;
+else
+    info.StudyDescription = '';
+end
+
 % Specify structure set label (optional)
 if nargin == 3 && isfield(varargin{3}, 'structureLabel')
     info.StructureSetLabel = varargin{3}.structureLabel;
@@ -204,9 +211,6 @@ if nargin == 3 && isfield(varargin{3}, 'structureSetUID')
     info.SeriesInstanceUID = varargin{3}.structureSetUID;
 else
     info.SeriesInstanceUID = dicomuid;
-end
-if exist('Event', 'file') == 2
-    Event(['SOPInstanceUID set to ', info.SOPInstanceUID]);
 end
 
 % Specify referenced class UID if one exists
