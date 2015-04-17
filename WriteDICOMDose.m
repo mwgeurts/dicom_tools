@@ -92,7 +92,7 @@ info.MediaStorageSOPClassUID = '1.2.840.10008.5.1.4.1.1.481.2';
 info.SOPClassUID = info.MediaStorageSOPClassUID;
 info.Modality = 'RTDOSE';
 
-% Generate and specify unique instance ID
+% Specify unique instance UID
 info.MediaStorageSOPInstanceUID = dicomuid;
 info.SOPInstanceUID = info.MediaStorageSOPInstanceUID;
 if exist('Event', 'file') == 2
