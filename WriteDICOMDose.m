@@ -314,6 +314,14 @@ if nargin == 3 && isfield(varargin{3}, 'structureSetUID')
         varargin{3}.structureSetUID;
 end
 
+% Specify referenced RT plan UID
+if nargin == 3 && isfield(varargin{3}, 'planSeriesUID')
+    info.ReferencedRTPlanSequence.Item_1.ReferencedSOPClassUID = ...
+        '1.2.840.10008.5.1.4.1.1.481.5';
+    info.ReferencedRTPlanSequence.Item_1.ReferencedSOPInstanceUID = ...
+        varargin{3}.planSeriesUID;
+end
+
 % Write DICOM file using dicomwrite()
 status = dicomwrite(reshape(flip(rot90(uint16(varargin{1}.data/...
     info.DoseGridScaling), 3), 2), [size(varargin{1}.data, 2) ...
