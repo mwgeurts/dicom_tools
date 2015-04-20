@@ -1,4 +1,4 @@
-function WriteDICOMDose(varargin)
+function varargout = WriteDICOMDose(varargin)
 % WriteDICOMDose saves the provided dose array to a DICOM RTDOSE file. If
 % DICOM header information is provided in the third input argument, it will
 % be used to populate the DICOM header for associating the DICOM RTDOSE
@@ -16,6 +16,9 @@ function WriteDICOMDose(varargin)
 %       patientAge, classUID, studyUID, seriesUID, frameRefUID, 
 %       instanceUIDs, and seriesDescription. Note, not all fields must be
 %       provided to execute.
+%
+% The following variables are returned upon successful completion:
+%   varargout{1} (optional): dose SOP instance UID
 %
 % Below is an example of how this function is used:
 %
@@ -92,16 +95,9 @@ info.MediaStorageSOPClassUID = '1.2.840.10008.5.1.4.1.1.481.2';
 info.SOPClassUID = info.MediaStorageSOPClassUID;
 info.Modality = 'RTDOSE';
 
-% Specify unique instance UID
-if isfield(varargin{3}, 'doseUID')
-    info.MediaStorageSOPInstanceUID = varargin{3}.doseUID;
-else
-    info.MediaStorageSOPInstanceUID = dicomuid;
-end
+% Specify unique instance UID (this will be overwritten by dicomwrite)
+info.MediaStorageSOPInstanceUID = dicomuid;
 info.SOPInstanceUID = info.MediaStorageSOPInstanceUID;
-if exist('Event', 'file') == 2
-    Event(['SOPInstanceUID set to ', info.SOPInstanceUID]);
-end
 
 % Generate creation date/time
 if nargin == 3 && isfield(varargin{3}, 'timestamp')
@@ -328,6 +324,21 @@ status = dicomwrite(reshape(flip(rot90(uint16(varargin{1}.data/...
     size(varargin{1}.data, 1) 1 size(varargin{1}.data, 3)]), varargin{2}, ...
     info, 'CompressionMode', 'None', 'CreateMode', 'Copy', 'Endian', ...
     'ieee-le', 'MultiframeSingleFile', true);
+
+% If the UID is to be returned
+if nargout == 1
+   
+    % Load the dicom file back into info
+    info = dicominfo(varargin{2});
+    
+    % Return UID
+    varargout{1} = info.SOPInstanceUID;
+    
+    % Log UID
+    if exist('Event', 'file') == 2
+        Event(['SOPInstanceUID set to ', info.SOPInstanceUID]);
+    end
+end
 
 % Check write status
 if isempty(status)

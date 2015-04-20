@@ -1,4 +1,4 @@
-function WriteDICOMImage(varargin)
+function varargout = WriteDICOMImage(varargin)
 % WriteDICOMImage saves the provided image array to a series of DICOM CT 
 % files. If DICOM header information is provided in the third input 
 % argument, it will be used to populate the DICOM header for associating 
@@ -17,6 +17,9 @@ function WriteDICOMImage(varargin)
 %       patientAge, classUID, studyUID, seriesUID, frameRefUID, 
 %       instanceUIDs, and seriesDescription. Note, not all fields must be
 %       provided to execute.
+%
+% The following variables are returned upon successful completion:
+%   varargout{1} (optional): cell array of image SOP instance UIDs
 %
 % Below is an example of how this function is used:
 %
@@ -307,6 +310,11 @@ for i = 1:size(varargin{1}.data, 3)
         info.MediaStorageSOPInstanceUID = varargin{3}.instanceUIDs{i};    
     else
         info.MediaStorageSOPInstanceUID = dicomuid;
+    end
+    
+    % Specify return variable
+    if nargout == 1
+        varargout{1}{i} = info.MediaStorageSOPInstanceUID;
     end
     
     % Copy instance UID from media storage UID

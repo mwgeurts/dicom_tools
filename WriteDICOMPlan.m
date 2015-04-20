@@ -1,4 +1,4 @@
-function WriteDICOMPlan(plan, file)
+function varargout = WriteDICOMPlan(plan, file)
 % WriteDICOMPlan saves the provided dose array to a DICOM RTPlan file. If
 % the patient demographics (name, ID, etc) are not included in the plan
 % structure, the user will be prompted to provide them.
@@ -10,6 +10,9 @@ function WriteDICOMPlan(plan, file)
 %   file: string containing the path and name to write the DICOM 
 %       RTDOSE file to. MATLAB must have write access to this location to 
 %       execute successfully.
+%
+% The following variables are returned upon successful completion:
+%   varargout{1} (optional): RT plan SOP instance UID
 %
 % Below is an example of how this function is used:
 %
@@ -75,16 +78,9 @@ info.MediaStorageSOPClassUID = '1.2.840.10008.5.1.4.1.1.481.5';
 info.SOPClassUID = info.MediaStorageSOPClassUID;
 info.Modality = 'RTPLAN';
 
-% Specify instance UID
-if isfield(plan, 'planUID')
-    info.MediaStorageSOPInstanceUID = plan.planUID;
-else
-    info.MediaStorageSOPInstanceUID = dicomuid;
-end
+% Specify unique instance UID (this will be overwritten by dicomwrite)
+info.MediaStorageSOPInstanceUID = dicomuid;
 info.SOPInstanceUID = info.MediaStorageSOPInstanceUID;
-if exist('Event', 'file') == 2
-    Event(['SOPInstanceUID set to ', info.SOPInstanceUID]);
-end
 
 % Generate creation date/time
 if isfield(plan, 'timestamp')
@@ -319,6 +315,21 @@ end
 status = dicomwrite([], file, info, 'CompressionMode', 'None', 'CreateMode', ...
     'Copy', 'Endian', 'ieee-le');
 
+% If the UID is to be returned
+if nargout == 1
+   
+    % Load the dicom file back into info
+    info = dicominfo(file);
+    
+    % Return UID
+    varargout{1} = info.SOPInstanceUID;
+    
+    % Log UID
+    if exist('Event', 'file') == 2
+        Event(['SOPInstanceUID set to ', info.SOPInstanceUID]);
+    end
+end
+
 % Check write status
 if isempty(status)
     
@@ -339,6 +350,7 @@ else
         warning('DICOM RTPlan export completed with one or more warnings');
     end
 end
+
 
 % Clear temporary variables
 clear info t status;

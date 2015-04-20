@@ -1,4 +1,4 @@
-function WriteDICOMStructures(varargin)
+function varargout = WriteDICOMStructures(varargin)
 % WriteDICOMStructures saves the provided structure set 
 %
 % The following variables are required for proper execution: 
@@ -14,6 +14,9 @@ function WriteDICOMStructures(varargin)
 %       patientAge, classUID, studyUID, seriesUID, frameRefUID, 
 %       instanceUIDs, and seriesDescription. Note, not all fields must be
 %       provided to execute.
+%
+% The following variables are returned upon successful completion:
+%   varargout{1} (optional): structure set SOP instance UID
 %
 % Author: Mark Geurts, mark.w.geurts@gmail.com
 % Copyright (C) 2015 University of Wisconsin Board of Regents
@@ -67,16 +70,9 @@ info.MediaStorageSOPClassUID = '1.2.840.10008.5.1.4.1.1.481.3';
 info.SOPClassUID = info.MediaStorageSOPClassUID;
 info.Modality = 'RTSTRUCT';
 
-% Specify unique instance UID
-if isfield(varargin{3}, 'structureSetUID')
-    info.MediaStorageSOPInstanceUID = varargin{3}.structureSetUID;
-else
-    info.MediaStorageSOPInstanceUID = dicomuid;
-end
+% Specify unique instance UID (this will be overwritten by dicomwrite)
+info.MediaStorageSOPInstanceUID = dicomuid;
 info.SOPInstanceUID = info.MediaStorageSOPInstanceUID;
-if exist('Event', 'file') == 2
-    Event(['SOPInstanceUID set to ', info.SOPInstanceUID]);
-end
 
 % Generate creation date/time
 if nargin == 3 && isfield(varargin{3}, 'timestamp')
@@ -343,6 +339,21 @@ end
 % Write DICOM file using dicomwrite()
 status = dicomwrite([], varargin{2}, info, 'CompressionMode', 'None', ...
     'CreateMode', 'Copy', 'Endian', 'ieee-le');
+
+% If the UID is to be returned
+if nargout == 1
+   
+    % Load the dicom file back into info
+    info = dicominfo(varargin{2});
+    
+    % Return UID
+    varargout{1} = info.SOPInstanceUID;
+    
+    % Log UID
+    if exist('Event', 'file') == 2
+        Event(['SOPInstanceUID set to ', info.SOPInstanceUID]);
+    end
+end
 
 % Check write status
 if isempty(status)
