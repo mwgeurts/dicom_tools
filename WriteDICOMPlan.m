@@ -209,7 +209,7 @@ end
 
 % Specify series UID
 if isfield(plan, 'planSeriesUID')
-    info.SeriesInstanceUID = plan.doseSeriesUID;
+    info.SeriesInstanceUID = plan.planSeriesUID;
 else
     info.SeriesInstanceUID = dicomuid;
 end
@@ -300,11 +300,11 @@ if isfield(plan, 'structureSetUID')
 end
 
 % Specify referenced dose image
-if isfield(plan, 'doseUID')
+if isfield(plan, 'doseSeriesUID')
     info.ReferencedDoseSequence.Item_1.ReferencedSOPClassUID = ...
         '1.2.840.10008.5.1.4.1.1.481.2';
     info.ReferencedDoseSequence.Item_1.ReferencedSOPInstanceUID = ...
-        plan.doseUID;
+        plan.doseSeriesUID;
 end
 
 % Specify approval information
@@ -316,7 +316,7 @@ if isfield(plan, 'approver') && isfield(plan, 'timestamp')
 end
     
 % Write DICOM file using dicomwrite()
-dicomwrite([], file, info, 'CompressionMode', 'None', 'CreateMode', ...
+status = dicomwrite([], file, info, 'CompressionMode', 'None', 'CreateMode', ...
     'Copy', 'Endian', 'ieee-le');
 
 % Log completion of function
@@ -326,7 +326,7 @@ if exist('Event', 'file') == 2
 end
 
 % Clear temporary variables
-clear info t;
+clear info t status;
 
 % Catch errors, log, and rethrow
 catch err
