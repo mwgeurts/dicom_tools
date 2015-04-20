@@ -243,7 +243,7 @@ info.RTPlanGeometry = 'PATIENT';
 % Specify prescription summary
 if isfield(plan, 'rxDose') && isfield(plan, 'rxVolume')
     info.PrescriptionDescription = sprintf(['%0.1f%% of the prescription', ...
-        'volume receives at least %0.1f Gy'], plan.rxVolume, plan.rxDose);
+        ' volume receives at least %0.1f Gy'], plan.rxVolume, plan.rxDose);
 end
 
 % Specify number of fractions
