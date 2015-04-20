@@ -93,7 +93,11 @@ info.SOPClassUID = info.MediaStorageSOPClassUID;
 info.Modality = 'RTDOSE';
 
 % Specify unique instance UID
-info.MediaStorageSOPInstanceUID = dicomuid;
+if isfield(plan, 'doseUID')
+    info.MediaStorageSOPInstanceUID = plan.doseUID;
+else
+    info.MediaStorageSOPInstanceUID = dicomuid;
+end
 info.SOPInstanceUID = info.MediaStorageSOPInstanceUID;
 if exist('Event', 'file') == 2
     Event(['SOPInstanceUID set to ', info.SOPInstanceUID]);
@@ -250,8 +254,8 @@ else
 end
 
 % Specify series UID
-if nargin == 3 && isfield(varargin{3}, 'doseSeriesUID')
-    info.SeriesInstanceUID = varargin{3}.doseSeriesUID;
+if nargin == 3 && isfield(varargin{3}, 'seriesUID')
+    info.SeriesInstanceUID = varargin{3}.seriesUID;
 else
     info.SeriesInstanceUID = dicomuid;
 end

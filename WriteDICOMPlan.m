@@ -75,8 +75,12 @@ info.MediaStorageSOPClassUID = '1.2.840.10008.5.1.4.1.1.481.5';
 info.SOPClassUID = info.MediaStorageSOPClassUID;
 info.Modality = 'RTPLAN';
 
-% Specify unique instance UID
-info.MediaStorageSOPInstanceUID = dicomuid;
+% Specify instance UID
+if isfield(plan, 'planUID')
+    info.MediaStorageSOPInstanceUID = plan.planUID;
+else
+    info.MediaStorageSOPInstanceUID = dicomuid;
+end
 info.SOPInstanceUID = info.MediaStorageSOPInstanceUID;
 if exist('Event', 'file') == 2
     Event(['SOPInstanceUID set to ', info.SOPInstanceUID]);
@@ -208,8 +212,8 @@ else
 end
 
 % Specify series UID
-if isfield(plan, 'planSeriesUID')
-    info.SeriesInstanceUID = plan.planSeriesUID;
+if isfield(plan, 'seriesUID')
+    info.SeriesInstanceUID = plan.seriesUID;
 else
     info.SeriesInstanceUID = dicomuid;
 end
