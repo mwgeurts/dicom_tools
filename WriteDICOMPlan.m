@@ -272,12 +272,215 @@ if isfield(plan, 'machine') && isfield(plan, 'planType')
         [plan.planType, ' TomoTherapy Beam'];
     info.BeamSequence.Item_1.RadiationType = 'PHOTON';
     info.BeamSequence.Item_1.TreatmentDeliveryType = 'TREATMENT';
-    info.BeamSequence.Item_1.NumberOfWedges = 0;
-    info.BeamSequence.Item_1.NumberOfCompensators = 0;
-    info.BeamSequence.Item_1.NumberOfBoli = 0;
-    info.BeamSequence.Item_1.NumberOfBlocks = 0;
-    info.BeamSequence.Item_1.FinalCumulativeMetersetWeight = 1;
-    info.BeamSequence.Item_1.ReferencedPatientSetupNumber = 1;
+   
+    % Specify beam definition information
+    if isfield(plan, 'sinogram') && isfield(plan, 'events') && ...
+            isfield(plan, 'startTrim')
+        
+        % Start beam definition tags
+        info.BeamSequence.Item_1.NumberOfWedges = 0;
+        info.BeamSequence.Item_1.NumberOfCompensators = 0;
+        info.BeamSequence.Item_1.NumberOfBoli = 0;
+        info.BeamSequence.Item_1.NumberOfBlocks = 0;
+        info.BeamSequence.Item_1.FinalCumulativeMetersetWeight = 1;
+        info.BeamSequence.Item_1.ReferencedPatientSetupNumber = 1;
+        info.BeamSequence.Item_1.NumberOfControlPoints = ...
+            size(plan.sinogram, 2);
+        
+        % Initialize jaws temporary variable
+        jaws = zeros(2, plan.totalTau);
+
+        % Loop through each event
+        for i = 1:size(plan.events,1)
+
+            % If a jaw front event
+            if strcmp(plan.events{i,2}, 'jawFront')
+
+                % Set all future projections to the specified front jaw
+                jaws(1, ceil(plan.events{i,1})+1:plan.totalTau+1) = ...
+                    ones(1, plan.totalTau - ceil(plan.events{i,1}) + 1) * ...
+                    plan.events{i,3};
+
+            % Otherwise if a jaw back event
+            elseif strcmp(plan.events{i,2}, 'jawBack')
+
+                % Set all future projections to the specified back jaw
+                jaws(2, ceil(plan.events{i,1})+1:plan.totalTau+1) = ...
+                    ones(1, plan.totalTau - ceil(plan.events{i,1}) + 1) * ...
+                    plan.events{i,3};
+
+            % Otherwise if a jaw front rate event
+            elseif strcmp(plan.events{i,2}, 'jawFrontRate')
+
+                % Set all future projections to the current front jaw 
+                % position plus the specified front jaw rate multiplied by 
+                % number of projections
+                jaws(1, ceil(plan.events{i,1})+1:plan.totalTau+1) = ...
+                    interp1([floor(plan.events{i,1}) ceil(plan.events{i,1}...
+                    +1e-10)], jaws(1, floor(plan.events{i,1})+1:ceil(...
+                    plan.events{i,1}+1e-10)+1), plan.events{i,1}) + ((...
+                    ceil(plan.events{i,1}):plan.totalTau) - ...
+                    plan.events{i,1}) * plan.events{i,3};
+
+            % Otherwise if a jaw back event
+            elseif strcmp(plan.events{i,2}, 'jawBackRate')
+
+                % Set all future projections to the current back jaw 
+                % position plus the specified back jaw rate multiplied by 
+                % number of projections
+                jaws(2, ceil(plan.events{i,1})+1:plan.totalTau+1) = ...
+                    interp1([floor(plan.events{i,1}) ceil(plan.events{i,1}...
+                    +1e-10)], jaws(2, floor(plan.events{i,1})+1:ceil(...
+                    plan.events{i,1}+1e-10)+1), plan.events{i,1}) + ((...
+                    ceil(plan.events{i,1}):plan.totalTau) - ...
+                    plan.events{i,1}) * plan.events{i,3};
+            end
+        end
+
+        % Multiply by 850 mm to project to iso
+        jaws = jaws * 850;  
+        
+        % Initialize isocenter temporary variable
+        iso = zeros(3, plan.totalTau);
+        
+        % Loop through each event
+        for i = 1:size(plan.events,1)
+
+            % If an X position event
+            if strcmp(plan.events{i,2}, 'isoX')
+
+                % Set all X positions
+                iso(1,:) = ones(1, plan.totalTau) * plan.events{i,3};
+
+            % Otherwise if a Y position event
+            elseif strcmp(plan.events{i,2}, 'isoY')
+
+                % Set all X positions
+                iso(2,:) = ones(1, plan.totalTau) * plan.events{i,3};
+                
+            % Otherwise if a Z position event
+            elseif strcmp(plan.events{i,2}, 'isoZ')
+
+                % Set all future projections to the specified isoZ
+                jaws(3, ceil(plan.events{i,1})+1:plan.totalTau+1) = ...
+                    ones(1, plan.totalTau - ceil(plan.events{i,1}) + 1) * ...
+                    plan.events{i,3};
+
+            % Otherwise if a Z rate event
+            elseif strcmp(plan.events{i,2}, 'isoZRate')
+
+                % Set all future projections to the current Z position
+                % position plus the specified Z rate multiplied by 
+                % number of projections
+                jaws(3, ceil(plan.events{i,1})+1:plan.totalTau+1) = ...
+                    interp1([floor(plan.events{i,1}) ceil(plan.events{i,1}...
+                    +1e-10)], jaws(3, floor(plan.events{i,1})+1:ceil(...
+                    plan.events{i,1}+1e-10)+1), plan.events{i,1}) + ((...
+                    ceil(plan.events{i,1}):plan.totalTau) - ...
+                    plan.events{i,1}) * plan.events{i,3};
+            end
+        end
+        
+        % Initialize gantry temporary variable
+        gantry = zeros(1, plan.totalTau);
+        
+        % Loop through each event
+        for i = 1:size(plan.events,1)
+ 
+            % If a gantry angle event
+            if strcmp(plan.events{i,2}, 'gantryAngle')
+
+                % Set all future projections to the specified isoZ
+                gantry(1, ceil(plan.events{i,1})+1:plan.totalTau+1) = ...
+                    ones(1, plan.totalTau - ceil(plan.events{i,1}) + 1) * ...
+                    plan.events{i,3};
+
+            % Otherwise if a gantry rate event
+            elseif strcmp(plan.events{i,2}, 'gantryRate')
+
+                % Set all future projections to the current gantry position
+                % position plus the specified gantry rate multiplied by 
+                % number of projections
+                gantry(1, ceil(plan.events{i,1})+1:plan.totalTau+1) = ...
+                    interp1([floor(plan.events{i,1}) ceil(plan.events{i,1}...
+                    +1e-10)], gantry(1, floor(plan.events{i,1})+1:ceil(...
+                    plan.events{i,1}+1e-10)+1), plan.events{i,1}) + ((...
+                    ceil(plan.events{i,1}):plan.totalTau) - ...
+                    plan.events{i,1}) * plan.events{i,3};
+            end
+        end
+        
+        % Loop through control points
+        for i = 1:size(plan.sinogram, 2)
+            
+           % Start control point
+           info.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).ControlPointIndex = i-1;
+           info.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).NominalBeamEnergy = 6;
+           
+           % Specify X collimators
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).BeamLimitingDevicePositionSequence...
+               .Item_1.RTBeamLimitingDeviceType = 'X';
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).BeamLimitingDevicePositionSequence...
+               .Item_1.LeafJawPositions = [-200, 200];
+           
+           % Specify Y collimators
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).BeamLimitingDevicePositionSequence...
+               .Item_2.RTBeamLimitingDeviceType = 'ASYMY';
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).BeamLimitingDevicePositionSequence...
+               .Item_2.LeafJawPositions = [jaws(1, i-1+plan.startTrim), ...
+               jaws(2, i-1+plan.startTrim)];
+           
+           % Specify gantry angle
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).GantryAngle = ...
+               gantry(1, i-1+plan.startTrim);
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).GantryRotationDirection = 'CW';
+           
+           % Specify beam limiting device/patient support/table top 
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).BeamLimitingDeviceAngle = 0;
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i))...
+               .BeamLimitingDeviceRotationDirection = 'NONE'; 
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).PatientSupportAngle = 0;
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i))...
+               .PatientSupportRotationDirection = 'NONE';
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).TableTopEccentricAngle = 0;
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i))...
+               .TableTopEccentricRotationDirection = 'NONE';
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).TableTopVerticalPosition = [];
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).TableTopLongitudinalPosition = [];
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).TableTopLateralPosition = [];
+           
+           % Specify isocenter
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).IsocenterPosition = ...
+               [iso(1, i-1+plan.startTrim), iso(2, i-1+plan.startTrim), ...
+               -iso(3, i-1+plan.startTrim)];
+          
+           % Specify cumulative meterset
+           rtplan.BeamSequence.Item_1.ControlPointSequence...
+               .(sprintf('Item_%i',i)).CumulativeMetersetWeight = ...
+               i/size(plan.sinogram, 2);
+        end
+        
+        % Clear temporary variables
+        clear i jaws iso gantry;
+    end
 end
 
 % Specify patient setup
