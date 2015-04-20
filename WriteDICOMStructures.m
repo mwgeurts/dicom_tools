@@ -210,12 +210,8 @@ else
     info.StudyInstanceUID = dicomuid;
 end
 
-% Specify series UID
-if nargin == 3 && isfield(varargin{3}, 'seriesUID')
-    info.SeriesInstanceUID = varargin{3}.seriesUID;
-else
-    info.SeriesInstanceUID = dicomuid;
-end
+% Specify unique series UID
+info.SeriesInstanceUID = dicomuid;
 
 % Specify referenced class UID if one exists
 if nargin == 3 && isfield(varargin{3}, 'classUID')

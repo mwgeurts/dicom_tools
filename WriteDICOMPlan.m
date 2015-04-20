@@ -211,12 +211,8 @@ else
     info.StudyInstanceUID = dicomuid;
 end
 
-% Specify series UID
-if isfield(plan, 'seriesUID')
-    info.SeriesInstanceUID = plan.seriesUID;
-else
-    info.SeriesInstanceUID = dicomuid;
-end
+% Specify unique series UID
+info.SeriesInstanceUID = dicomuid;
 
 % Specify position reference indicator
 info.PositionReferenceIndicator = 'OM';
