@@ -138,7 +138,7 @@ info.ImageType = 'ORIGINAL/PRIMARY/AXIAL';
 % Specify manufacturer, model, and software version
 info.Manufacturer = ['MATLAB ', version];
 info.ManufacturerModelName = 'WriteDICOMImage';
-info.SoftwareVersion = '1.0';
+info.SoftwareVersion = '1.1';
 
 % Specify series description (optional)
 if nargin == 3 && isfield(varargin{3}, 'seriesDescription')
@@ -320,7 +320,7 @@ for i = 1:size(varargin{1}.data, 3)
     info.ImagePositionPatient(3) = -info.SliceLocation;
     
     % Write DICOM file using dicomwrite()
-    dicomwrite(flip(rot90(uint16(varargin{1}.data(:,:,i)), 3), 2), ...
+    status = dicomwrite(flip(rot90(uint16(varargin{1}.data(:,:,i)), 3), 2), ...
         [varargin{2}, sprintf('_%03i.dcm', i)], info, ...
         'CompressionMode', 'None', 'CreateMode', 'Copy', 'Endian', ...
         'ieee-le');
@@ -332,14 +332,29 @@ for i = 1:size(varargin{1}.data, 3)
     end
 end
 
-% Log completion of function
-if exist('Event', 'file') == 2
-    Event(sprintf(['DICOM CT export completed successfully in ', ...
-        '%0.3f seconds'], toc));
+% Check write status
+if isempty(status)
+    
+    % Log completion of function
+    if exist('Event', 'file') == 2
+        Event(sprintf(['DICOM image export completed successfully in ', ...
+            '%0.3f seconds'], toc));
+    end
+    
+% If not empty, warn user of any errors
+else
+    
+    % Log completion of function
+    if exist('Event', 'file') == 2
+        Event(sprintf(['DICOM image export completed with one or more ', ...
+            'warnings in %0.3f seconds'], toc), 'WARN');
+    else
+        warning('DICOM image export completed with one or more warnings');
+    end
 end
 
 % Clear temporary variables
-clear info t i;
+clear info t i status;
 
 % Catch errors, log, and rethrow
 catch err

@@ -120,7 +120,7 @@ info.ImageType = 'ORIGINAL/PRIMARY/AXIAL';
 % Specify manufacturer, model, and software version
 info.Manufacturer = ['MATLAB ', version];
 info.ManufacturerModelName = 'WriteDICOMDose';
-info.SoftwareVersion = '1.0';
+info.SoftwareVersion = '1.1';
 
 % Specify series description (optional)
 if nargin == 3 && isfield(varargin{3}, 'seriesDescription')
@@ -315,20 +315,35 @@ if nargin == 3 && isfield(varargin{3}, 'structureSetUID')
 end
 
 % Write DICOM file using dicomwrite()
-dicomwrite(reshape(flip(rot90(uint16(varargin{1}.data/...
+status = dicomwrite(reshape(flip(rot90(uint16(varargin{1}.data/...
     info.DoseGridScaling), 3), 2), [size(varargin{1}.data, 2) ...
     size(varargin{1}.data, 1) 1 size(varargin{1}.data, 3)]), varargin{2}, ...
     info, 'CompressionMode', 'None', 'CreateMode', 'Copy', 'Endian', ...
     'ieee-le', 'MultiframeSingleFile', true);
 
-% Log completion of function
-if exist('Event', 'file') == 2
-    Event(sprintf(['DICOM RTDOSE export completed successfully in ', ...
-        '%0.3f seconds'], toc));
+% Check write status
+if isempty(status)
+    
+    % Log completion of function
+    if exist('Event', 'file') == 2
+        Event(sprintf(['DICOM RTDose export completed successfully in ', ...
+            '%0.3f seconds'], toc));
+    end
+    
+% If not empty, warn user of any errors
+else
+    
+    % Log completion of function
+    if exist('Event', 'file') == 2
+        Event(sprintf(['DICOM RTDose export completed with one or more ', ...
+            'warnings in %0.3f seconds'], toc), 'WARN');
+    else
+        warning('DICOM RTDose export completed with one or more warnings');
+    end
 end
 
 % Clear temporary variables
-clear info t i;
+clear info t i status;
 
 % Catch errors, log, and rethrow
 catch err

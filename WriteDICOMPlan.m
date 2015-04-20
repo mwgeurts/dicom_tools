@@ -100,7 +100,7 @@ info.StudyTime = datestr(t, 'HHMMSS');
 % Specify manufacturer, model, and software version
 info.Manufacturer = ['MATLAB ', version];
 info.ManufacturerModelName = 'WriteDICOMPlan';
-info.SoftwareVersion = '1.0';
+info.SoftwareVersion = '1.1';
 
 % Specify series description (optional)
 if isfield(plan, 'seriesDescription')
@@ -319,10 +319,25 @@ end
 status = dicomwrite([], file, info, 'CompressionMode', 'None', 'CreateMode', ...
     'Copy', 'Endian', 'ieee-le');
 
-% Log completion of function
-if exist('Event', 'file') == 2
-    Event(sprintf(['DICOM RTPlan export completed successfully in ', ...
-        '%0.3f seconds'], toc));
+% Check write status
+if isempty(status)
+    
+    % Log completion of function
+    if exist('Event', 'file') == 2
+        Event(sprintf(['DICOM RTPlan export completed successfully in ', ...
+            '%0.3f seconds'], toc));
+    end
+    
+% If not empty, warn user of any errors
+else
+    
+    % Log completion of function
+    if exist('Event', 'file') == 2
+        Event(sprintf(['DICOM RTPlan export completed with one or more ', ...
+            'warnings in %0.3f seconds'], toc), 'WARN');
+    else
+        warning('DICOM RTPlan export completed with one or more warnings');
+    end
 end
 
 % Clear temporary variables
