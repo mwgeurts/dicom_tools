@@ -93,8 +93,8 @@ info.SOPClassUID = info.MediaStorageSOPClassUID;
 info.Modality = 'RTDOSE';
 
 % Specify unique instance UID
-if isfield(plan, 'doseUID')
-    info.MediaStorageSOPInstanceUID = plan.doseUID;
+if isfield(varargin{3}, 'doseUID')
+    info.MediaStorageSOPInstanceUID = varargin{3}.doseUID;
 else
     info.MediaStorageSOPInstanceUID = dicomuid;
 end

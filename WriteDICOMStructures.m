@@ -68,8 +68,8 @@ info.SOPClassUID = info.MediaStorageSOPClassUID;
 info.Modality = 'RTSTRUCT';
 
 % Specify unique instance UID
-if isfield(plan, 'structureSetUID')
-    info.MediaStorageSOPInstanceUID = plan.structureSetUID;
+if isfield(varargin{3}, 'structureSetUID')
+    info.MediaStorageSOPInstanceUID = varargin{3}.structureSetUID;
 else
     info.MediaStorageSOPInstanceUID = dicomuid;
 end
