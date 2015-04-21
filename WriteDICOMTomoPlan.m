@@ -1,7 +1,8 @@
-function varargout = WriteDICOMPlan(plan, file)
-% WriteDICOMPlan saves the provided dose array to a DICOM RTPlan file. If
-% the patient demographics (name, ID, etc) are not included in the plan
-% structure, the user will be prompted to provide them.
+function varargout = WriteDICOMTomoPlan(plan, file)
+% WriteDICOMTomoPlan saves the provided tomotherapy plan structure to a 
+% DICOM RTPlan file. If the patient demographics (name, ID, etc) are not 
+% included in the plan structure, the user will be prompted to provide 
+% them.
 %
 % The following variables are required for proper execution: 
 %   plan: structure containing the calculated plan information. See
