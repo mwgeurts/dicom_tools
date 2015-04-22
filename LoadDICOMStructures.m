@@ -242,7 +242,7 @@ for item = fieldnames(info.ROIContourSequence)'
         structures{n}.volume = 0;
         
         % Initialize points cell array
-        structures{n}.points = cell();
+        structures{n}.points = cell(0);
         
         % Loop through each ContourSequence
         for subitem = fieldnames(info.ROIContourSequence.(...
