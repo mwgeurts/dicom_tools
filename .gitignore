@@ -4,3 +4,4 @@ ganymed-ssh2*
 *.m~
 log.txt
 test_data/
+.smbdelete*
