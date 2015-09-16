@@ -151,7 +151,7 @@ if isfield(json, 'G300aE0070')
 
         % Store referenced beam sequences
         if isfield(json.G300aE0070{i}, 'G300cE0004')
-            for j = 1:length(json.G300aE0070{1}.G300cE0004)
+            for j = 1:length(json.G300aE0070{i}.G300cE0004)
 
                 if isfield(json.G300aE0070{i}.G300cE0004{j}, 'G300aE0082')
                     rtplan.FractionGroupSequence.(sprintf('Item_%i', i))...
