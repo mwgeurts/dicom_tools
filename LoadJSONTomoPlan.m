@@ -59,7 +59,7 @@ planData.position = json.G300aE0180{1}.G0018E5100;
 
 % Store the date and time as a timestamp
 planData.timestamp = datenum([json.G300aE0006, '-', json.G300aE0007], ...
-    'InputFormat', 'yyyyMMdd-HHmmss');
+    'yyyyMMdd-HHmmss');
 
 % Store the plan delivery type, removing 'TomoTherapy Beam'
 planData.planType = strrep(json.G300aE00b0{1}.G300aE00c2, ...
