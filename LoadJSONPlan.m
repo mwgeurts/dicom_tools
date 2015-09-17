@@ -446,7 +446,7 @@ if isfield(json, 'G300aE0180')
 end
 
 % Store referenced structure set sequences
-if isfield(json, 'G300aE0180')
+if isfield(json, 'G300cE0060')
     for i = 1:length(json.G300cE0060)    
         if isfield(json.G300cE0060{i}, 'G0008E1150')
             rtplan.ReferencedStructureSetSequence.(sprintf('Item_%i', i))...
