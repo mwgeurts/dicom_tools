@@ -135,9 +135,11 @@ planData.events{4,3} = json.G300aE00b0{1}.G300aE0111{1}.G300aE012c(3);
 % Store the gantry rate
 planData.events{5,1} = 0;
 planData.events{5,2} = 'gantryRate';
-planData.events{5,3} = json.G300aE00b0{1}.G300aE0111{2}.G300aE011e - ...
-    json.G300aE00b0{1}.G300aE0111{1}.G300aE011e;
-        
+if isfield(json.G300aE00b0{1}.G300aE0111{2}, 'G300aE011e')
+     planData.events{5,3} = json.G300aE00b0{1}.G300aE0111{2}.G300aE011e - ...
+         json.G300aE00b0{1}.G300aE0111{1}.G300aE011e;
+end
+
 % Store the couch velocity
 planData.events{6,1} = 0;
 planData.events{6,2} = 'isoZRate';
