@@ -61,9 +61,12 @@ planData.position = json.G300aE0180{1}.G0018E5100;
 planData.timestamp = datenum([json.G300aE0006, '-', json.G300aE0007], ...
     'yyyymmdd-HHMMSS');
 
-% Store the plan delivery type, removing 'TomoTherapy Beam'
-planData.planType = strrep(json.G300aE00b0{1}.G300aE00c2, ...
-    ' TomoTherapy Beam', '');
+% Store the plan delivery type based on plan name
+if strcmp(json.G300aE00b0{1}.G300aE00c2, 'Helical TomoTherapy Beam')
+    planData.planType = 'Helical';
+else
+    planData.planType = 'Direct';
+end
 
 % Store the approving user name
 planData.approver = json.G0008E1070;
