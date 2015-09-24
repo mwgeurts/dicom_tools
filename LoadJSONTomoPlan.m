@@ -76,7 +76,7 @@ planData.approver = json.G0008E1070;
     'Beam pitch ([0-9\.]+), Field size ([0-9\.]+) mm', 'tokens');
 if ~isempty(tokens)
     planData.pitch = str2double(tokens{1}{1});
-    planData.fieldWidth = str2double(tokens{1}{1});
+    planData.fieldWidth = str2double(tokens{1}{2});
     planData.frontField = -planData.fieldWidth / 2;
     planData.backField = planData.fieldWidth / 2;
 end
