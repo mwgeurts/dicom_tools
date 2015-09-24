@@ -65,7 +65,7 @@ planData.timestamp = datenum([json.G300aE0006, '-', json.G300aE0007], ...
 if strcmp(json.G300aE00b0{1}.G300aE00c2, 'Helical TomoTherapy Beam')
     planData.planType = 'Helical';
 else
-    planData.planType = 'Direct';
+    planData.planType = 'Fixed_Angle';
 end
 
 % Store the approving user name
