@@ -146,8 +146,8 @@ end
 % Store the couch velocity
 planData.events{6,1} = 0;
 planData.events{6,2} = 'isoZRate';
-planData.events{6,3} = json.G300aE00b0{1}.G300aE0111{2}.G300aE012c(3) - ...
-    json.G300aE00b0{1}.G300aE0111{1}.G300aE012c(3);
+planData.events{6,3} = (json.G300aE00b0{1}.G300aE0111{2}.G300aE012c(3) - ...
+    json.G300aE00b0{1}.G300aE0111{1}.G300aE012c(3)) / 10;
 
 % Finalize Events array
 % Add a sync event at tau = 0.   Events that do not have a value
