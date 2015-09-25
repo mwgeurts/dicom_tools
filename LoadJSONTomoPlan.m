@@ -111,11 +111,11 @@ planData.jawType = json.G300aE00b0{1}.G300aE00c4;
 planData.totalTau = json.G300aE00b0{1}.G300aE0110;
 planData.numberOfProjections = planData.totalTau;
 
-% Store the total treatment time (minutes)
-planData.txTime = json.G300aE0070{1}.G300cE0004{1}.G300aE0086;
+% Store the total treatment time (seconds)
+planData.txTime = json.G300aE0070{1}.G300cE0004{1}.G300aE0086 * 60;
 
 % Compute scale using treatment time and projections
-planData.scale = planData.txTime * 60 / planData.totalTau;
+planData.scale = planData.txTime / planData.totalTau;
 
 % Store the gantry start angle to the events cell array.  The
 % first cell is tau, the second is type, and the third is the
