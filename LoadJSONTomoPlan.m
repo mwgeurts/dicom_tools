@@ -71,12 +71,12 @@ end
 % Store the approving user name
 planData.approver = json.G0008E1070;
 
-% Store the pitch, field width, front and back fields
+% Store the pitch, field width (in cm), front and back fields
 [tokens, ~] = regexp(json.G300aE00b0{1}.G300aE00c3, ...
     'Beam pitch ([0-9\.]+), Field size ([0-9\.]+) mm', 'tokens');
 if ~isempty(tokens)
     planData.pitch = str2double(tokens{1}{1});
-    planData.fieldWidth = str2double(tokens{1}{2});
+    planData.fieldWidth = str2double(tokens{1}{2}) / 10;
     planData.frontField = -planData.fieldWidth / 2;
     planData.backField = planData.fieldWidth / 2;
 end
