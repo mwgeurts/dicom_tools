@@ -124,16 +124,16 @@ planData.events{1,1} = 0;
 planData.events{1,2} = 'gantryAngle';
 planData.events{1,3} = json.G300aE00b0{1}.G300aE0111{1}.G300aE011e;
 
-% Store the isocenter positions to the events cell array. 
+% Store the isocenter positions to the events cell array (in cm)
 planData.events{2,1} = 0;
 planData.events{2,2} = 'isoX';
-planData.events{2,3} = json.G300aE00b0{1}.G300aE0111{1}.G300aE012c(1);
+planData.events{2,3} = json.G300aE00b0{1}.G300aE0111{1}.G300aE012c(1) / 10;
 planData.events{3,1} = 0;
 planData.events{3,2} = 'isoY';
-planData.events{3,3} = json.G300aE00b0{1}.G300aE0111{1}.G300aE012c(2);
+planData.events{3,3} = json.G300aE00b0{1}.G300aE0111{1}.G300aE012c(2) / 10;
 planData.events{4,1} = 0;
 planData.events{4,2} = 'isoZ';
-planData.events{4,3} = json.G300aE00b0{1}.G300aE0111{1}.G300aE012c(3);
+planData.events{4,3} = json.G300aE00b0{1}.G300aE0111{1}.G300aE012c(3) / 10;
 
 % Store the gantry rate
 planData.events{5,1} = 0;
