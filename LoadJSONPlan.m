@@ -179,6 +179,14 @@ if isfield(json, 'G300aE0070')
                 end
             end
         end
+        
+        if isfield(json.G300aE0070{i}, 'G300cE0050') && ...
+                isfield(json.G300aE0070{i}.G300cE0050{1}, 'G300aE0026')
+            rtplan.FractionGroupSequence.(sprintf('Item_%i', i))...
+                .ReferencedDoseReferenceSequence.Item_1...
+                .TargetPrescriptionDose = ...
+                json.G300aE0070{i}.G300cE0050{1}.G300aE0026;
+        end
     end
 end
 
