@@ -14,8 +14,8 @@ function varargout = WriteDICOMDose(varargin)
 %   varargin{3} (optional): structure containing the following DICOM header
 %       fields: patientName, patientID, patientBirthDate, patientSex, 
 %       patientAge, classUID, studyUID, seriesUID, frameRefUID, 
-%       instanceUIDs, and seriesDescription. Note, not all fields must be
-%       provided to execute.
+%       instanceUIDs, seriesDescription, and referencedBeamNumber. Note, 
+%       not all fields must be provided to execute.
 %
 % The following variables are returned upon successful completion:
 %   varargout{1} (optional): dose SOP instance UID
@@ -319,6 +319,28 @@ if nargin == 3 && isfield(varargin{3}, 'planUID')
         '1.2.840.10008.5.1.4.1.1.481.5';
     info.ReferencedRTPlanSequence.Item_1.ReferencedSOPInstanceUID = ...
         varargin{3}.planUID;
+end
+
+% Specify dose summation type
+% If a beam number was provided, assume this is a 
+if nargin == 3 && isfield(varargin{3}, 'referencedBeamNumber') && ...
+        varargin{3}.referencedBeamNumber > 0
+    
+    % Specify this dose as per beam
+    info.DoseSummationType = 'BEAM';
+    
+    % Add referenced beam number
+    info.ReferencedRTPlanSequence.Item_1.ReferencedFractionGroupSequence...
+        .Item_1.ReferencedBeamSequence.Item_1.ReferencedBeamNumber = ...
+        varargin{3}.referencedBeamNumber;
+    
+    % Add fraction group
+    info.ReferencedRTPlanSequence.Item_1.ReferencedFractionGroupSequence...
+        .Item_1.ReferencedFractionGroupNumber = 1;
+    
+% Otherwise, specify this dose as per plan
+else
+    info.DoseSummationType = 'PLAN';
 end
 
 % Write DICOM file using dicomwrite()
