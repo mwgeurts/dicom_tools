@@ -6,7 +6,7 @@ function varargout = WriteDICOMDose(varargin)
 %
 % The following variables are required for proper execution: 
 %   varargin{1}: structure containing the calculated dose. Must contain
-%       start, width, and data fields. See CalcDose for more information on 
+%       start, width, and data fields. See LoadDICOMDose for more info on 
 %       the format of this object. Start and widths are in cm.
 %   varargin{2}: string containing the path and name to write the DICOM 
 %       RTDOSE file to. MATLAB must have write access to this location to 
@@ -120,7 +120,7 @@ info.ImageType = 'ORIGINAL/PRIMARY/AXIAL';
 % Specify manufacturer, model, and software version
 info.Manufacturer = ['MATLAB ', version];
 info.ManufacturerModelName = 'WriteDICOMDose';
-info.SoftwareVersion = '1.1';
+info.SoftwareVersion = '1.2';
 
 % Specify series description (optional)
 if nargin == 3 && isfield(varargin{3}, 'seriesDescription')
@@ -253,9 +253,12 @@ end
 info.SeriesInstanceUID = dicomuid;
 
 % Specify image position (in mm)
-info.ImagePositionPatient = varargin{1}.start' .* [1;1;-1] * 10; % mm
+if size(varargin{1}.start, 2) == 3
+    varargin{1}.start = varargin{1}.start';
+end
+info.ImagePositionPatient = varargin{1}.start .* [1;1;-1] * 10; % mm
 
-% Adjust vertical position back to IEC
+% Flip vertical position back to IEC
 info.ImagePositionPatient(2) = -(varargin{1}.start(2) + ...
     varargin{1}.width(2) * (size(varargin{1}.data,2)-1)) * 10; % mm
 
@@ -282,8 +285,8 @@ info.GridFrameOffsetVector = (0:size(varargin{1}.data, 3) - 1) * ...
     -varargin{1}.width(3) * 10; % mm
 
 % Specify number of rows/columns
-info.Rows = size(varargin{1}.data, 1);
-info.Columns = size(varargin{1}.data, 2);
+info.Rows = size(varargin{1}.data, 2);
+info.Columns = size(varargin{1}.data, 1);
 
 % Specify pixel spacing (in mm)
 info.PixelSpacing = [varargin{1}.width(1); varargin{1}.width(2)] * 10; % mm
