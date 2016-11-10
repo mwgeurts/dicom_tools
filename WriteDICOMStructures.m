@@ -1,9 +1,9 @@
 function varargout = WriteDICOMStructures(varargin)
-% WriteDICOMStructures saves the provided structure set 
+% WriteDICOMStructures saves the provided structure set to a DICOM file.
 %
 % The following variables are required for proper execution: 
 %   varargin{1}: structure containing the structures. Must contain
-%       name, color, and points fields. See LoadStructures for more 
+%       name, color, and points fields. See LoadDICOMStructures for more 
 %       information on the format of this object. Point positions are in 
 %       cm.
 %   varargin{2}: string containing the path and name to write the DICOM 
