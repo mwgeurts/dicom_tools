@@ -321,6 +321,11 @@ if nargin == 3 && isfield(varargin{3}, 'planUID')
         varargin{3}.planUID;
 end
 
+% Specify image orientation
+if nargin == 3 && isfield(varargin{3}, 'orientation')
+    info.ImageOrientationPatient = varargin{3}.orientation;
+end
+
 % Specify dose summation type
 % If a beam number was provided, assume this is a 
 if nargin == 3 && isfield(varargin{3}, 'referencedBeamNumber') && ...
