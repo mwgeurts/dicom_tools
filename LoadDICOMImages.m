@@ -86,7 +86,6 @@ image.patientID = '';
 image.patientBirthDate = '';
 image.patientSex = '';
 image.patientAge = '';
-image.width(3) = 0;
 
 % Initialize empty 3D array for images and vector of slice locations
 % (the data may not be loaded in correct order; these will be used to
@@ -125,7 +124,7 @@ for i = 1:length(names)
     % have not yet been set
     if strcmp(image.classUID,'') 
         
-        % Store the UIDs, patient demographics, and slice thickness (in cm)
+        % Store the UIDs, patient demographics
         image.classUID = info.SOPClassUID;
         image.studyUID = info.StudyInstanceUID;
         image.seriesUID = info.SeriesInstanceUID;
@@ -145,7 +144,6 @@ for i = 1:length(names)
         if isfield(info, 'PatientAge')
             image.patientAge = info.PatientAge;
         end
-        image.width(3) = info.SliceThickness / 10; % cm
         
     % Otherwise, if this file's study UID does not match the others,
     % multiple DICOM studies may be present in the same folder (not
@@ -169,16 +167,6 @@ for i = 1:length(names)
         else
             error(['Multiple DICOM Series Instance UIDs were found in ', ...
                 'this list.  Please select only one series.']);
-        end
-        
-    % Otherwise, if this file's slice thickness in cm is different than
-    % the others, throw an error (variable slice thickness is not 
-    % currently supported)
-    elseif image.width(3) ~= info.SliceThickness / 10
-        if exist('Event', 'file') == 2
-            Event('Variable slice thickness images found', 'ERROR');
-        else
-            error('Variable slice thickness images found');
         end
     end
     
@@ -278,6 +266,23 @@ else
     end
 end
 
+% Compute slice location differences
+widths = diff(sliceLocations(indices));
+
+% Verify that slice locations do not differ significantly (1%)
+if abs(max(widths) - min(widths))/mean(widths) > 0.01
+    if exist('Event', 'file') == 2
+            Event(['Slice positions differ by more than 1%, suggesting ', ...
+                'variable slice spacing. This is not supported.'], 'ERROR');
+        else
+            error(['Slice positions differ by more than 1%, suggesting ', ...
+                'variable slice spacing. This is not supported.']);
+    end
+end
+
+% Store mean slice position difference as IEC-Y width, in cm
+image.width(3) = abs(mean(widths)) / 10;
+
 % Initialize daily image data array as single type
 image.data = single(zeros(size(images, 3), size(images, 2), ...
     size(images, 1)));
@@ -334,7 +339,7 @@ if exist('progress', 'var') && ishandle(progress)
 end
 
 % Clear temporary variables
-clear i images info sliceLocations indices progress;
+clear i images info sliceLocations indices progress widths;
 
 % Catch errors, log, and rethrow
 catch err
