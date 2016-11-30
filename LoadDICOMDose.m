@@ -116,10 +116,6 @@ end
 % Store mean slice position difference as IEC-Y width, in cm
 dose.width(3) = abs(mean(widths)) / 10;
 
-% Initialize daily image data array as single type
-image.data = single(zeros(size(images, 3), size(images, 2), ...
-    size(images, 1)));
-
 % Store dose start
 dose.start = info.ImagePositionPatient .* [1;1;-1] / 10; % cm
 
