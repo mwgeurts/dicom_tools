@@ -97,7 +97,28 @@ end
 
 % Store dose dimensions
 dose.width = info.PixelSpacing / 10;
-dose.width(3) = info.SliceThickness / 10; % cm
+
+% Compute grid offset differences
+widths = diff(info.GridFrameOffsetVector);
+
+% Verify that slice locations do not differ significantly (1%)
+if abs(max(widths) - min(widths))/mean(widths) > 0.01
+    if exist('Event', 'file') == 2
+            Event(['Vector positions differ by more than 1%, suggesting ', ...
+                'variable dose grid spacing. This is not supported.'], ...
+                'ERROR');
+        else
+            error(['Vector positions differ by more than 1%, suggesting ', ...
+                'variable dose grid spacing. This is not supported.']);
+    end
+end
+
+% Store mean slice position difference as IEC-Y width, in cm
+dose.width(3) = abs(mean(widths)) / 10;
+
+% Initialize daily image data array as single type
+image.data = single(zeros(size(images, 3), size(images, 2), ...
+    size(images, 1)));
 
 % Store dose start
 dose.start = info.ImagePositionPatient .* [1;1;-1] / 10; % cm
