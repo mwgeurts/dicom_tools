@@ -216,9 +216,30 @@ image.start(2) = -(info.ImagePositionPatient(2) + info.PixelSpacing(2) * ...
 image.width(1) = info.PixelSpacing(1) / 10;
 image.width(2) = info.PixelSpacing(2) / 10;
 
-% If patient is Head First
-if isequal(info.ImageOrientationPatient, [1;0;0;0;1;0]) || ...
-        isequal(info.ImageOrientationPatient, [-1;0;0;0;-1;0]) 
+% If the patient is Feet First
+if isequal(info.ImageOrientationPatient, [-1;0;0;0;1;0]) || ...
+        isequal(info.ImageOrientationPatient, [1;0;0;0;-1;0]) || ...
+        (isfield(info, 'PatientPosition') && length(info.PatientPosition) ...
+        > 1 && strcmpi(info.PatientPosition(1:2), 'FF'))
+    
+    % Store patient position
+    if info.ImageOrientationPatient(5) == 1
+        image.position = 'FFS';
+    elseif info.ImageOrientationPatient(5) == -1
+        image.position = 'FFP';
+    end
+    
+    % % Sort sliceLocations vector in ascending order
+    [~,indices] = sort(sliceLocations, 'ascend');
+
+    % Store start voxel IEC-Y coordinate, in cm
+    image.start(3) = min(sliceLocations) / 10;
+    
+% Otherwise, if patient is Head First
+elseif isequal(info.ImageOrientationPatient, [1;0;0;0;1;0]) || ...
+        isequal(info.ImageOrientationPatient, [-1;0;0;0;-1;0]) || ...
+        (isfield(info, 'PatientPosition') && length(info.PatientPosition) ...
+        > 1 && strcmpi(info.PatientPosition(1:2), 'HF'))
     
     % Store patient position
     if info.ImageOrientationPatient(5) == 1
@@ -233,22 +254,6 @@ if isequal(info.ImageOrientationPatient, [1;0;0;0;1;0]) || ...
     % Store start voxel IEC-Y coordinate, in cm
     image.start(3) = -max(sliceLocations) / 10;
     
-% Otherwise, if the patient is Feet First
-elseif isequal(info.ImageOrientationPatient, [-1;0;0;0;1;0]) || ...
-        isequal(info.ImageOrientationPatient, [1;0;0;0;-1;0]) 
-    
-    % Store patient position
-    if info.ImageOrientationPatient(5) == 1
-        image.position = 'FFS';
-    elseif info.ImageOrientationPatient(5) == -1
-        image.position = 'FFP';
-    end
-    
-    % % Sort sliceLocations vector in ascending order
-    [~,indices] = sort(sliceLocations, 'ascend');
-
-    % Store start voxel IEC-Y coordinate, in cm
-    image.start(3) = min(sliceLocations) / 10;
 end 
 
 % If the position wasn't identified, error
