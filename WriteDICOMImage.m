@@ -45,7 +45,7 @@ function varargout = WriteDICOMImage(varargin)
 %   WriteDICOMImage(image, dest, info);
 %
 % Author: Mark Geurts, mark.w.geurts@gmail.com
-% Copyright (C) 2015 University of Wisconsin Board of Regents
+% Copyright (C) 2016 University of Wisconsin Board of Regents
 %
 % This program is free software: you can redistribute it and/or modify it 
 % under the terms of the GNU General Public License as published by the  
@@ -141,7 +141,7 @@ info.ImageType = 'ORIGINAL/PRIMARY/AXIAL';
 % Specify manufacturer, model, and software version
 info.Manufacturer = ['MATLAB ', version];
 info.ManufacturerModelName = 'WriteDICOMImage';
-info.SoftwareVersion = '1.1';
+info.SoftwareVersion = '1.2';
 
 % Specify series description (optional)
 if nargin == 3 && isfield(varargin{3}, 'seriesDescription')
@@ -273,14 +273,35 @@ if nargin == 3 && isfield(varargin{3}, 'position')
 end
 
 % Specify image orientation
-info.ImageOrientationPatient = [1;0;0;0;1;0];
+if nargin == 3 && isfield(varargin{3}, 'position')
+    
+    % Set orientation based on patient position
+    if strcmpi(varargin{3}.position, 'HFP')
+        info.ImageOrientationPatient = [-1;0;0;0;-1;0];
+    elseif strcmpi(varargin{3}.position, 'FFS')
+        info.ImageOrientationPatient = [-1;0;0;0;1;0];
+    elseif strcmpi(varargin{3}.position, 'FFP')
+        info.ImageOrientationPatient = [1;0;0;0;-1;0];
+    else
+        info.ImageOrientationPatient = [1;0;0;0;1;0];
+    end
 
-% Specify image position (in mm)
-info.ImagePositionPatient = varargin{1}.start' .* [1;1;-1] * 10; % mm
+% Otherwise, assume standard (HFS) orientation
+else
+    info.ImageOrientationPatient = [1;0;0;0;1;0];
+end
 
-% Adjust vertical position back to IEC
-info.ImagePositionPatient(2) = -(varargin{1}.start(2) + ...
-    varargin{1}.width(2) * (size(varargin{1}.data,2)-1)) * 10; % mm
+% Specify IEC-X position, in mm
+info.ImagePositionPatient(1) = varargin{1}.start(1) * 10 * ...
+    info.ImageOrientationPatient(1);
+
+% Specify IEC-Z position, in mm
+info.ImagePositionPatient(2) =  -(varargin{1}.start(2) + ...
+    varargin{1}.width(2) * (size(varargin{1}.data,2)-1)) * 10 * ...
+    info.ImageOrientationPatient(5); 
+
+% Specify IEC-Y position, in mm
+info.ImagePositionPatient(3) = -varargin{1}.start(3) * 10;
 
 % Specify number of images
 info.ImagesInAcquisition = size(varargin{1}.data, 3);
@@ -302,7 +323,7 @@ info.BitsStored = 16;
 info.HighBit = 15;
 info.PixelRepresentation = 0;
 
-% Loop through CT Images
+% Loop through Images
 for i = 1:size(varargin{1}.data, 3)
     
     % Specify slice instance UID
@@ -320,9 +341,19 @@ for i = 1:size(varargin{1}.data, 3)
     % Copy instance UID from media storage UID
     info.SOPInstanceUID = info.MediaStorageSOPInstanceUID;
     
-    % Specify slice location (in mm)
-    info.SliceLocation = (varargin{1}.start(3) + (i - 1) * ...
-        varargin{1}.width(3)) * 10; % mm
+    % Specify slice location in mm
+    if isequal(info.ImageOrientationPatient, [1;0;0;0;1;0]) || ...
+            isequal(info.ImageOrientationPatient, [-1;0;0;0;-1;0]) 
+    
+        % Slice position for head first
+        info.SliceLocation = (varargin{1}.start(3) + (i - 1) * ...
+            varargin{1}.width(3)) * 10;
+    else
+        
+        % Slice position for feet first
+        info.SliceLocation = -(varargin{1}.start(3) + (i - 1) * ...
+            varargin{1}.width(3)) * 10;
+    end
     
     % Update image position to slice location
     info.ImagePositionPatient(3) = -info.SliceLocation;
@@ -332,6 +363,11 @@ for i = 1:size(varargin{1}.data, 3)
         [varargin{2}, sprintf('_%03i.dcm', i)], info, ...
         'CompressionMode', 'None', 'CreateMode', 'Copy', 'Endian', ...
         'ieee-le');
+    
+    % If status is not empty, break loop
+    if ~isempty(status)
+        break;
+    end
     
     % Log UID
     if exist('Event', 'file') == 2

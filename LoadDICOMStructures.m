@@ -42,7 +42,7 @@ function structures = LoadDICOMStructures(varargin)
 %   structures = LoadDICOMStructures(path, name, image, atlas);
 %
 % Author: Mark Geurts, mark.w.geurts@gmail.com
-% Copyright (C) 2015 University of Wisconsin Board of Regents
+% Copyright (C) 2016 University of Wisconsin Board of Regents
 %
 % This program is free software: you can redistribute it and/or modify it 
 % under the terms of the GNU General Public License as published by the  
@@ -84,7 +84,7 @@ end
 if usejava('jvm') && feature('ShowFigureWindows')
     
     % Start waitbar
-    progress = waitbar(0, 'Loading DICOM structure set');
+    progress = waitbar(0, 'Loading DICOM structures');
 end
 
 % Read DICOM header info from file
@@ -204,6 +204,22 @@ if exist('progress', 'var') && ishandle(progress)
     waitbar(0.2, progress);
 end
 
+% Apply image orientation rotation, if available (otherwise assume HFS)
+rot = [1,1,1];
+if isfield(varargin{3}, 'position')
+   
+    % Set rotation vector based on patient position
+    if strcmpi(varargin{3}.position, 'HFS')
+        rot = [1,1,1];
+    elseif strcmpi(varargin{3}.position, 'HFP')
+        rot = [-1,-1,1];
+    elseif strcmpi(varargin{3}.position, 'FFS')
+        rot = [-1,1,-1];
+    elseif strcmpi(varargin{3}.position, 'FFP')
+        rot = [1,-1,-1];
+    end
+end
+        
 % Loop through each ROIContourSequence
 for item = fieldnames(info.ROIContourSequence)'
    
@@ -213,7 +229,8 @@ for item = fieldnames(info.ROIContourSequence)'
     % Update progress bar
     if exist('progress', 'var') && ishandle(progress)
         waitbar(0.2 + 0.8 * n/length(fieldnames(info.ROIContourSequence)), ...
-            progress);
+            progress, sprintf('Loading DICOM structures (%i/%i)', ...
+            n, length(fieldnames(info.ROIContourSequence))));
     end
     
     % If name was loaded (and therefore this contour matches the atlas
@@ -264,9 +281,12 @@ for item = fieldnames(info.ROIContourSequence)'
                     item{1}).ContourSequence.(subitem{1}).ContourData, ...
                     3, [])' / 10;
                 
-                % Store raw points
+                % Re-orient points by rotation vector
+                points = points .* repmat(rot, size(points, 1), 1);
+                
+                % Store original points
                 structures{n}.points{length(structures{n}.points)+1} = ...
-                    points .* repmat([1,-1,-1], size(points,1), 1);
+                    points;
                 
                 % Determine slice index by searching IEC-Y index using 
                 % nearest neighbor interpolation
@@ -363,7 +383,7 @@ if exist('progress', 'var') && ishandle(progress)
 end
 
 % Clear temporary files
-clear info n item subitem points slice mask load progress;
+clear info n item subitem points slice mask load progress rot;
 
 % Catch errors, log, and rethrow
 catch err

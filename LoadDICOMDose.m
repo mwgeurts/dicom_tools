@@ -1,6 +1,8 @@
 function dose = LoadDICOMDose(path, name)
 % LoadDICOMDose loads a DICOM RTDose object into a MATLAB structure that
-% can be used for manipulation with other functions in this library.
+% can be used for manipulation with other functions in this library. This
+% function has been tested with Pinnacle, TomoTherapy, Oncentra, and
+% ViewRay dose volumes in each standard orientation (HFS, HFP, FFS, FFP).
 %
 % The following variables are required for proper execution: 
 %   path: string containing the path to the DICOM files
@@ -115,22 +117,55 @@ end
 
 % Store mean slice position difference as IEC-Y width, in cm
 dose.width(3) = abs(mean(widths)) / 10;
+if exist('Event', 'file') == 2
+    Event(sprintf('IEC-Y resolution computed as %g (range %g to %g)', ...
+        dose.width(3), min(abs(widths))/10, max(abs(widths))/10));
+end
 
-% Store dose start
-dose.start = info.ImagePositionPatient .* [1;1;-1] / 10; % cm
+% If image orientation is missing, assume it to be HFS
+if ~isfield(info, 'ImageOrientationPatient')
+    info.ImageOrientationPatient = [1;0;0;0;1;0];
+end
 
-% Read in dose data, converting to double
-dose.data = flip(rot90(double(squeeze(dicomread(info))))) * ...
-    info.DoseGridScaling;
+% Retrieve start voxel coordinate from DICOM header, in cm
+dose.start(1) = info.ImagePositionPatient(1) / 10 * ...
+    info.ImageOrientationPatient(1);
+
+% If GridFrameOffsetVector is descending
+if info.GridFrameOffsetVector(end) < info.GridFrameOffsetVector(1)
+
+    % Read in dose data, converting to double
+    dose.data = flip(rot90(double(squeeze(dicomread(info))))) * ...
+        info.DoseGridScaling;
+    
+% Otherwise, if GridFrameOffsetVector is ascending
+else
+    
+    % Read in dose data, converting to double
+    dose.data = flip(flip(rot90(double(squeeze(dicomread(info))))), 3) * ...
+        info.DoseGridScaling;
+end
 
 % Create dimensions structure field based on the daily image size
 dose.dimensions = size(dose.data);
 
-% Flip vertical position (non-IEC)
-dose.start(2) = -(dose.start(2) + dose.width(2) * (dose.dimensions(2)-1));
+% Adjust IEC-Z to inverted value, in cm
+dose.start(2) = -(info.ImagePositionPatient(2) / 10 * ...
+    info.ImageOrientationPatient(5) + dose.width(2) * ...
+    (dose.dimensions(2) - 1));
+
+% Determine IEC-Y start value based on patient position
+if isequal(info.ImageOrientationPatient, [1;0;0;0;1;0]) || ...
+        isequal(info.ImageOrientationPatient, [-1;0;0;0;-1;0]) 
+    dose.start(3) = -max(info.ImagePositionPatient(3) + ...
+        info.GridFrameOffsetVector) / 10;
+else
+    dose.start(3) = max(info.ImagePositionPatient(3) + ...
+        info.GridFrameOffsetVector) / 10;
+end
 
 % Clear temporary variables
-clear info;
+clear info widths;
 
 % Log completion and image size
 if exist('Event', 'file') == 2

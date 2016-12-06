@@ -1,12 +1,12 @@
 function image = LoadDICOMImages(path, names)
-% LoadDICOMImages loads a series of single-frame DICOM CT images and 
+% LoadDICOMImages loads a series of single-frame DICOM CT or MR images and 
 % returns a formatted structure for dose calculation. See below for more 
 % information on the structure format. This function will display a
 % progress bar while it loads (unless MATLAB was executed with the 
 % -nodisplay, -nodesktop, or -noFigureWindows flags).
 %
-% Note, non-HFS and multi-frame datasets have not currently been tested, so
-% support is unknown. Support will be added in a future release.
+% Standard radiotherapy (HFS, FFS, HFP, and FFP) orientations have been
+% tested using data exported from Siemens and GE CT/MR scanners.
 %
 % The following variables are required for proper execution: 
 %   path: string containing the path to the DICOM files
@@ -15,7 +15,7 @@ function image = LoadDICOMImages(path, names)
 % The following variables are returned upon succesful completion:
 %   image: structure containing the image data, dimensions, width, type,
 %       start coordinates, and key DICOM header values. The data is a three 
-%       dimensional array of CT values, while the dimensions, width, and 
+%       dimensional array of image values, while the dimensions, width, and 
 %       start fields are three element vectors.  The DICOM header values 
 %       are returned as a strings.
 %
@@ -30,7 +30,7 @@ function image = LoadDICOMImages(path, names)
 %   image = LoadDICOMImages(path, names);
 %
 % Author: Mark Geurts, mark.w.geurts@gmail.com
-% Copyright (C) 2015 University of Wisconsin Board of Regents
+% Copyright (C) 2016 University of Wisconsin Board of Regents
 %
 % This program is free software: you can redistribute it and/or modify it 
 % under the terms of the GNU General Public License as published by the  
@@ -98,7 +98,8 @@ for i = 1:length(names)
     
     % Update waitbar
     if exist('progress', 'var') && ishandle(progress)
-        waitbar(i/(length(names)+2), progress);
+        waitbar(i/(length(names)+2), progress, ...
+            sprintf('Loading DICOM images (%i/%i)', i, length(names)));
     end
     
     % Attempt to load each file using dicominfo
@@ -205,14 +206,16 @@ if exist('Event', 'file') == 2
     Event(['DICOM image type identified as ', image.type]);
 end
 
-% Retrieve start voxel coordinate from DICOM header, in cm
-image.start(1) = info.ImagePositionPatient(1) / 10;
+% Retrieve start voxel IEC-X coordinate from DICOM header, in cm
+image.start(1) = info.ImagePositionPatient(1) / 10 * ...
+    info.ImageOrientationPatient(1);
 
-% Adjust IEC-Y to inverted value, in cm
-image.start(2) = -(info.ImagePositionPatient(2) + info.PixelSpacing(2) * ...
+% Adjust IEC-Z to inverted value, in cm
+image.start(2) = -(info.ImagePositionPatient(2) * ...
+    info.ImageOrientationPatient(5) + info.PixelSpacing(2) * ...
     (size(images, 2) - 1)) / 10; 
 
-% Retrieve x/y voxel widths from DICOM header, in cm
+% Retrieve X/Z voxel widths from DICOM header, in cm
 image.width(1) = info.PixelSpacing(1) / 10;
 image.width(2) = info.PixelSpacing(2) / 10;
 
@@ -223,6 +226,7 @@ if isequal(info.ImageOrientationPatient, [1;0;0;0;1;0]) || ...
     % Store patient position
     if info.ImageOrientationPatient(5) == 1
         image.position = 'HFS';
+
     elseif info.ImageOrientationPatient(5) == -1
         image.position = 'HFP';
     end
@@ -240,6 +244,7 @@ elseif isequal(info.ImageOrientationPatient, [-1;0;0;0;1;0]) || ...
     % Store patient position
     if info.ImageOrientationPatient(5) == 1
         image.position = 'FFS';
+        
     elseif info.ImageOrientationPatient(5) == -1
         image.position = 'FFP';
     end
@@ -282,6 +287,10 @@ end
 
 % Store mean slice position difference as IEC-Y width, in cm
 image.width(3) = abs(mean(widths)) / 10;
+if exist('Event', 'file') == 2
+    Event(sprintf('IEC-Y resolution computed as %g (range %g to %g)', ...
+        image.width(3), min(abs(widths))/10, max(abs(widths))/10));
+end
 
 % Initialize daily image data array as single type
 image.data = single(zeros(size(images, 3), size(images, 2), ...

@@ -44,7 +44,7 @@ function varargout = WriteDICOMDose(varargin)
 %   WriteDICOMDose(dose, dest, info);
 %
 % Author: Mark Geurts, mark.w.geurts@gmail.com
-% Copyright (C) 2015 University of Wisconsin Board of Regents
+% Copyright (C) 2016 University of Wisconsin Board of Regents
 %
 % This program is free software: you can redistribute it and/or modify it 
 % under the terms of the GNU General Public License as published by the  
@@ -252,15 +252,41 @@ end
 % Specify unique series UID
 info.SeriesInstanceUID = dicomuid;
 
-% Specify image position (in mm)
-if size(varargin{1}.start, 2) == 3
-    varargin{1}.start = varargin{1}.start';
-end
-info.ImagePositionPatient = varargin{1}.start .* [1;1;-1] * 10; % mm
+% Specify image orientation
+if nargin == 3 && isfield(varargin{3}, 'position')
+    
+    % Set orientation based on patient position
+    if strcmpi(varargin{3}.position, 'HFP')
+        info.ImageOrientationPatient = [-1;0;0;0;-1;0];
+    elseif strcmpi(varargin{3}.position, 'FFS')
+        info.ImageOrientationPatient = [-1;0;0;0;1;0];
+    elseif strcmpi(varargin{3}.position, 'FFP')
+        info.ImageOrientationPatient = [1;0;0;0;-1;0];
+    else
+        info.ImageOrientationPatient = [1;0;0;0;1;0];
+    end
 
-% Flip vertical position back to IEC
-info.ImagePositionPatient(2) = -(varargin{1}.start(2) + ...
-    varargin{1}.width(2) * (size(varargin{1}.data,2)-1)) * 10; % mm
+% Otherwise, assume standard (HFS) orientation
+else
+    info.ImageOrientationPatient = [1;0;0;0;1;0];
+end
+
+% Specify IEC-X position, in mm
+info.ImagePositionPatient(1) = varargin{1}.start(1) * 10 * ...
+    info.ImageOrientationPatient(1);
+
+% Specify IEC-Z position, in mm
+info.ImagePositionPatient(2) =  -(varargin{1}.start(2) + ...
+    varargin{1}.width(2) * (size(varargin{1}.data,2)-1)) * 10 * ...
+    info.ImageOrientationPatient(5); 
+
+% Specify IEC-Y position, in mm
+if isequal(info.ImageOrientationPatient, [1;0;0;0;1;0]) || ...
+        isequal(info.ImageOrientationPatient, [-1;0;0;0;-1;0]) 
+    info.ImagePositionPatient(3) = -varargin{1}.start(3) * 10;
+else
+    info.ImagePositionPatient(3) = varargin{1}.start(3) * 10;
+end
 
 % Specify frame of reference UID
 if nargin == 3 && isfield(varargin{3}, 'frameRefUID')
@@ -319,11 +345,6 @@ if nargin == 3 && isfield(varargin{3}, 'planUID')
         '1.2.840.10008.5.1.4.1.1.481.5';
     info.ReferencedRTPlanSequence.Item_1.ReferencedSOPInstanceUID = ...
         varargin{3}.planUID;
-end
-
-% Specify image orientation
-if nargin == 3 && isfield(varargin{3}, 'orientation')
-    info.ImageOrientationPatient = varargin{3}.orientation;
 end
 
 % Specify dose summation type

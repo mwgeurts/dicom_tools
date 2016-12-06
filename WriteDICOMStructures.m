@@ -19,7 +19,7 @@ function varargout = WriteDICOMStructures(varargin)
 %   varargout{1} (optional): structure set SOP instance UID
 %
 % Author: Mark Geurts, mark.w.geurts@gmail.com
-% Copyright (C) 2015 University of Wisconsin Board of Regents
+% Copyright (C) 2016 University of Wisconsin Board of Regents
 %
 % This program is free software: you can redistribute it and/or modify it 
 % under the terms of the GNU General Public License as published by the  
@@ -267,6 +267,22 @@ if nargin == 3 && isfield(varargin{3}, 'instanceUIDs')
     end
 end
 
+% Apply image orientation rotation, if available (otherwise assume HFS)
+rot = [1,1,1];
+if isfield(varargin{3}, 'position')
+
+    % Set rotation vector based on patient position
+    if strcmpi(varargin{3}.position, 'HFS')
+        rot = [1,1,1];
+    elseif strcmpi(varargin{3}.position, 'HFP')
+        rot = [-1,-1,1];
+    elseif strcmpi(varargin{3}.position, 'FFS')
+        rot = [-1,1,-1];
+    elseif strcmpi(varargin{3}.position, 'FFP')
+        rot = [1,-1,-1];
+    end
+end
+
 % Loop through structures cell array
 for i = 1:length(varargin{1})
 
@@ -315,16 +331,11 @@ for i = 1:length(varargin{1})
             .ContourSequence.(sprintf('Item_%i', j)).NumberOfContourPoints = ...
             size(varargin{1}{i}.points{j}, 1);
         
-        % Flip points y/z sign
-        if ~isempty(varargin{1}{i}.points{j})
-            varargin{1}{i}.points{j} = varargin{1}{i}.points{j} .* ...
-                repmat([1,-1,-1], size(varargin{1}{i}.points{j},1), 1);
-        end
-        
         % Specify points
         info.ROIContourSequence.(sprintf('Item_%i', i))...
             .ContourSequence.(sprintf('Item_%i', j)).ContourData = ...
-            reshape(varargin{1}{i}.points{j}' * 10, 1, [])';
+            reshape(varargin{1}{i}.points{j}' .* repmat(rot', 1, ...
+            size(varargin{1}{i}.points{j},1)) * 10, 1, [])';
     end
     
     % Create ROI observations sequence
@@ -334,6 +345,11 @@ for i = 1:length(varargin{1})
         .ReferencedROINumber = i;
     info.RTROIObservationsSequence.(sprintf('Item_%i', i))...
         .RTROIInterpretedType = 'ORGAN';
+end
+
+% Log structure
+if exist('Event', 'file') == 2
+    Event('Saving DICOM RTSS file');
 end
 
 % Write DICOM file using dicomwrite()
