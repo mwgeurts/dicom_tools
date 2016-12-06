@@ -10,7 +10,8 @@ function varargout = WriteDVH(varargin)
 % headers for each structure set (including the volume in cc in 
 % parentheses), with each subsequent row containing the percent volume of 
 % each structure at or above the dose specified in the first column (in 
-% Gy).  The resolution is determined by dividing the maximum dose by 1001.
+% Gy).  The resolution is determined by dividing the maximum dose by 1001,
+% or nbins + 1;
 %
 % The following variables are required for proper execution: 
 %   varargin{1}: structure containing the CT image data and structure set 
@@ -61,7 +62,7 @@ function varargout = WriteDVH(varargin)
 %   dvh = WriteDVH(image, dose);
 %
 % Author: Mark Geurts, mark.w.geurts@gmail.com
-% Copyright (C) 2014 University of Wisconsin Board of Regents
+% Copyright (C) 2016 University of Wisconsin Board of Regents
 %
 % This program is free software: you can redistribute it and/or modify it 
 % under the terms of the GNU General Public License as published by the  
@@ -75,6 +76,9 @@ function varargout = WriteDVH(varargin)
 % 
 % You should have received a copy of the GNU General Public License along 
 % with this program. If not, see http://www.gnu.org/licenses/.
+
+% Specify number of bins
+nbins = 1000;
 
 % Execute in try/catch statement
 try
@@ -96,18 +100,18 @@ if isfield(varargin{2}, 'data') && size(varargin{2}.data, 1) > 0
             || isequal(varargin{2}.start, varargin{1}.start) == 0
 
         % Create 3D mesh for reference image
-        [refX, refY, refZ] = meshgrid(single(varargin{1}.start(2): ...
-            varargin{1}.width(2):varargin{1}.start(2) + varargin{1}.width(2) * ...
-            (size(varargin{1}.data,2) - 1)), single(varargin{1}.start(1): ...
+        [refX, refY, refZ] = meshgrid(single(varargin{1}.start(2) + ...
+            varargin{1}.width(2) * (size(varargin{1}.data,2) - 1): ...
+            -varargin{1}.width(2):varargin{1}.start(2)), single(varargin{1}.start(1): ...
             varargin{1}.width(1):varargin{1}.start(1) + varargin{1}.width(1)...
             * (size(varargin{1}.data,1) - 1)), single(varargin{1}.start(3):...
             varargin{1}.width(3):varargin{1}.start(3) + varargin{1}.width(3)...
             * (size(varargin{1}.data,3) - 1)));
 
         % Create GPU 3D mesh for secondary dataset
-        [secX, secY, secZ] = meshgrid(single(varargin{2}.start(2):...
-            varargin{2}.width(2):varargin{2}.start(2) + varargin{2}.width(2) * ...
-            (size(varargin{2}.data,2) - 1)), single(varargin{2}.start(1): ...
+        [secX, secY, secZ] = meshgrid(single(varargin{2}.start(2) + ...
+            varargin{2}.width(2) * (size(varargin{2}.data,2) - 1):...
+            -varargin{2}.width(2):varargin{2}.start(2)), single(varargin{2}.start(1): ...
             varargin{2}.width(1):varargin{2}.start(1) + varargin{2}.width(1) ...
             * (size(varargin{2}.data,1) - 1)), single(varargin{2}.start(3):...
             varargin{2}.width(3):varargin{2}.start(3) + varargin{2}.width(3) ...
@@ -158,12 +162,11 @@ if isfield(varargin{2}, 'data') && size(varargin{2}.data, 1) > 0
     end
     
     % Initialize array for reference DVH values with 1001 bins
-    dvh = zeros(1001, length(varargin{1}.structures) + 1);
+    dvh = zeros(nbins + 1, length(varargin{1}.structures) + 1);
 
     % Defined the last column to be the x-axis, ranging from 0 to the
     % maximum dose
-    dvh(:, length(varargin{1}.structures) + 1) = ...
-        0:maxdose / 1000:maxdose;
+    dvh(:, length(varargin{1}.structures) + 1) = 0:maxdose/nbins:maxdose;
 
     % Loop through each reference structure
     for i = 1:length(varargin{1}.structures)
@@ -181,14 +184,11 @@ if isfield(varargin{2}, 'data') && size(varargin{2}.data, 1) > 0
             % Remove all zero values (basically, voxels outside of the
             % structure mask
             data(data==0) = [];
-
-            % Compute differential histogram
-            dvh(:,i) = histc(data, dvh(:, ...
-                length(varargin{1}.structures) + 1));
-
-            % Compute cumulative histogram and invert
-            dvh(:,i) = ...
-                flipud(cumsum(flipud(dvh(:,i))));
+            
+            % Compute cumulative histogram
+            dvh(1:nbins,i) = 1 - histcounts(data, dvh(:, ...
+                length(varargin{1}.structures) + 1), ...
+                'Normalization', 'cdf')';
 
             % Normalize histogram to relative volume
             dvh(:,i) = dvh(:,i) / max(dvh(:,i)) * 100;
