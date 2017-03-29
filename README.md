@@ -16,6 +16,7 @@ The DICOM Manipulation Tools for MATLAB are a compilation of functions that read
   * [WriteDICOMDose](README.md#writedicomdose)
   * [WriteDVH](README.md#writedvh)
 * [Event Calling](README.md#event-calling)
+* [License](README.md#license)
 
 ## Installation and Use
 
@@ -254,3 +255,11 @@ dvh = WriteDVH(image, dose);
 ## Event Calling
 
 These functions optionally return execution status and error information to an `Event()` function. If available in the MATLAB path, `Event()` will be called with one or two variables: the first variable is a string containing the status information, while the second is the status classification (WARN or ERROR). If the status information is only informative, the second argument is not included.  Finally, if no `Event()` function is available errors will still be thrown via the standard `error()` MATLAB function.
+
+## License
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
