@@ -2,7 +2,7 @@ function varargout = WriteDICOMTomoPlan(plan, file)
 % WriteDICOMTomoPlan saves the provided tomotherapy plan structure to a 
 % DICOM RTPlan file. If the patient demographics (name, ID, etc) are not 
 % included in the plan structure, the user will be prompted to provide 
-% them.
+% them. See https://github.com/mwgeurts/tomo_extract for more information.
 %
 % The following variables are required for proper execution: 
 %   plan: structure containing the calculated plan information. See
@@ -23,9 +23,9 @@ function varargout = WriteDICOMTomoPlan(plan, file)
 %   % Load the first plan
 %   plan = LoadPlan('/path/to/archive', 'name_patient.xml', plans{1});
 %
-%   % Execute WriteDICOMPlan
+%   % Execute WriteDICOMTomoPlan
 %   dest = '/file/to/write/plan/to/info.dcm';
-%   WriteDICOMPlan(plan, dest);
+%   WriteDICOMTomoPlan(plan, dest);
 %
 % Author: Mark Geurts, mark.w.geurts@gmail.com
 % Copyright (C) 2015 University of Wisconsin Board of Regents
