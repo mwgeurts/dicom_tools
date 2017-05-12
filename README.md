@@ -208,7 +208,7 @@ WriteDICOMDose(dose, dest, info);
 
 ### WriteDICOMTomoPlan
 
-`WriteDICOMTomoPlan` saves the provided tomotherapy plan structure to a DICOM RTPlan file. If the patient demographics (name, ID, etc) are not included in the plan structure, the user will be prompted to provide them.
+`WriteDICOMTomoPlan()` saves the provided tomotherapy plan structure to a DICOM RTPlan file. If the patient demographics (name, ID, etc) are not included in the plan structure, the user will be prompted to provide them.
 
 The following variables are required for proper execution:    
 
@@ -219,7 +219,7 @@ The following variables are returned upon successful completion:
 
 * varargout{1} (optional): RT plan SOP instance UID
 
-Below is an example of how this function is used (the functions `FindPlans` and `LoadPlan` are from the [tomo_extract](https://github.com/mwgeurts/tomo_extract/) repository:
+Below is an example of how this function is used (the functions `FindPlans()` and `LoadPlan()` are from the [tomo_extract](https://github.com/mwgeurts/tomo_extract/) repository:
 
 ```matlab
 % Look for plans within a patient archive   
