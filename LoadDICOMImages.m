@@ -195,7 +195,8 @@ end
 
 % Set image type based on series description (for MVCTs) or DICOM
 % header modality tag (for everything else)
-if strcmp(info.SeriesDescription, 'CTrue Image Set')
+if isfield(info, 'SeriesDescription') && ...
+        strcmp(info.SeriesDescription, 'CTrue Image Set')
     image.type = 'MVCT';
 else
     image.type = info.Modality;
