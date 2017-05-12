@@ -261,6 +261,11 @@ for item = fieldnames(info.ROIContourSequence)'
         % Initialize points cell array
         structures{n}.points = cell(0);
         
+        % If a contour sequence does not exist, skip this structure
+        if ~isfield(info.ROIContourSequence.(item{1}), 'ContourSequence')
+            continue;
+        end
+        
         % Loop through each ContourSequence
         for subitem = fieldnames(info.ROIContourSequence.(...
                 item{1}).ContourSequence)'
