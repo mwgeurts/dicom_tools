@@ -13,7 +13,11 @@ The DICOM Manipulation Tools for MATLAB are a compilation of functions that read
 * [Tools and Examples](README.md#tools-and-examples)
   * [LoadDICOMImages](README.md#loaddicomimages)
   * [LoadDICOMStructures](README.md#loaddicomstructures)
+  * [LoadDICOMDose](README.md#loaddicomdose)
+  * [WriteDICOMImage](README.md#writedicomimage)
+  * [WriteDICOMStructures](README.md#writedicomstructures)
   * [WriteDICOMDose](README.md#writedicomdose)
+  * [WriteDICOMTomoPlan](README.md#writedicomtomoplan)
   * [WriteDVH](README.md#writedvh)
 * [Event Calling](README.md#event-calling)
 * [License](README.md#license)
@@ -200,7 +204,34 @@ info.frameRefUID = ...
 
 % Execute WriteDICOMDose
 WriteDICOMDose(dose, dest, info);
-````
+```
+
+### WriteDICOMTomoPlan
+
+`WriteDICOMTomoPlan` saves the provided tomotherapy plan structure to a DICOM RTPlan file. If the patient demographics (name, ID, etc) are not included in the plan structure, the user will be prompted to provide them.
+
+The following variables are required for proper execution:    
+
+* plan: structure containing the calculated plan information. See [tomo_extract/LoadPlan.m](https://github.com/mwgeurts/tomo_extract/) for more information on the format of this structure.
+* file: string containing the path and name to write the DICOM RTDOSE file to. MATLAB must have write access to this location to        execute successfully.
+
+The following variables are returned upon successful completion:
+
+* varargout{1} (optional): RT plan SOP instance UID
+
+Below is an example of how this function is used (the functions `FindPlans` and `LoadPlan` are from the [tomo_extract](https://github.com/mwgeurts/tomo_extract/) repository:
+
+```matlab
+% Look for plans within a patient archive   
+plans = FindPlans('/path/to/archive', 'name_patient.xml');
+
+% Load the first plan   
+plan = LoadPlan('/path/to/archive', 'name_patient.xml', plans{1});
+
+% Execute WriteDICOMTomoPlan   
+dest = '/file/to/write/plan/to/info.dcm';   
+WriteDICOMTomoPlan(plan, dest);
+```
 
 ### WriteDVH
 
