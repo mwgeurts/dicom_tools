@@ -342,7 +342,7 @@ if isfield(plan, 'machine') && isfield(plan, 'planType')
         jaws = jaws * 850;  
         
         % Initialize isocenter temporary variable
-        iso = zeros(3, plan.totalTau);
+        iso = zeros(3, plan.totalTau+1);
         
         % Loop through each event
         for i = 1:size(plan.events,1)
@@ -351,13 +351,13 @@ if isfield(plan, 'machine') && isfield(plan, 'planType')
             if strcmp(plan.events{i,2}, 'isoX')
 
                 % Set all X positions
-                iso(1,:) = ones(1, plan.totalTau) * plan.events{i,3};
+                iso(1,:) = ones(1, plan.totalTau+1) * plan.events{i,3};
 
             % Otherwise if a Y position event
             elseif strcmp(plan.events{i,2}, 'isoY')
 
                 % Set all X positions
-                iso(2,:) = ones(1, plan.totalTau) * plan.events{i,3};
+                iso(2,:) = ones(1, plan.totalTau+1) * plan.events{i,3};
                 
             % Otherwise if a Z position event
             elseif strcmp(plan.events{i,2}, 'isoZ')
@@ -437,13 +437,13 @@ if isfield(plan, 'machine') && isfield(plan, 'planType')
                .Item_2.RTBeamLimitingDeviceType = 'ASYMY';
            info.BeamSequence.Item_1.ControlPointSequence...
                .(sprintf('Item_%i',i)).BeamLimitingDevicePositionSequence...
-               .Item_2.LeafJawPositions = [jaws(1, i-1+plan.startTrim), ...
-               jaws(2, i-1+plan.startTrim)];
+               .Item_2.LeafJawPositions = [jaws(1, i-1+plan.startTrim(1)), ...
+               jaws(2, i-1+plan.startTrim(1))];
            
            % Specify gantry angle
            info.BeamSequence.Item_1.ControlPointSequence...
                .(sprintf('Item_%i',i)).GantryAngle = ...
-               gantry(1, i-1+plan.startTrim);
+               gantry(1, i-1+plan.startTrim(1));
            info.BeamSequence.Item_1.ControlPointSequence...
                .(sprintf('Item_%i',i)).GantryRotationDirection = 'CW';
            
@@ -473,8 +473,8 @@ if isfield(plan, 'machine') && isfield(plan, 'planType')
            % Specify isocenter
            info.BeamSequence.Item_1.ControlPointSequence...
                .(sprintf('Item_%i',i)).IsocenterPosition = ...
-               [iso(1, i-1+plan.startTrim), -iso(2, i-1+plan.startTrim), ...
-               -iso(3, i-1+plan.startTrim)] * 10;
+               [iso(1, i-1+plan.startTrim(1)), -iso(2, i-1+plan.startTrim(1)), ...
+               -iso(3, i-1+plan.startTrim(1))] * 10;
           
            % Specify cumulative meterset
            info.BeamSequence.Item_1.ControlPointSequence...
