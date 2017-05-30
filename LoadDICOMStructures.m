@@ -297,12 +297,12 @@ for item = fieldnames(info.ROIContourSequence)'
                     3, [])' / 10;
                 
                 % If points are empty, warn user and continue
-                if size(points, 2) < 3
+                if isempty(points)
                     
                     % Warn the user that the contour did not match a slice
                     if exist('Event', 'file') == 2
                         Event(['Structure ', structures{n}.name, ...
-                            ' contains empty contours'], 'WARN');
+                            ' contains an empty contour'], 'WARN');
                     end
                     
                     % Continue
