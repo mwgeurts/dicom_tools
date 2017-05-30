@@ -296,6 +296,19 @@ for item = fieldnames(info.ROIContourSequence)'
                     item{1}).ContourSequence.(subitem{1}).ContourData, ...
                     3, [])' / 10;
                 
+                % If points are empty, warn user and continue
+                if size(points, 2) < 3
+                    
+                    % Warn the user that the contour did not match a slice
+                    if exist('Event', 'file') == 2
+                        Event(['Structure ', structures{n}.name, ...
+                            ' contains empty contours'], 'WARN');
+                    end
+                    
+                    % Continue
+                    continue;
+                end
+                
                 % Re-orient points by rotation vector
                 points = points .* repmat(rot, size(points, 1), 1);
                 
