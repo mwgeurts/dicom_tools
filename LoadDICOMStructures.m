@@ -219,12 +219,22 @@ if isfield(varargin{3}, 'position')
         rot = [1,-1,-1];
     end
 end
-        
+
+% Initialize backup counter
+nb = 0;
+
 % Loop through each ROIContourSequence
 for item = fieldnames(info.ROIContourSequence)'
    
+   % Increment backup counter
+   nb = nb + 1;
+   
     % Store contour number
-    n = info.ROIContourSequence.(item{1}).ReferencedROINumber;
+    if isfield(info.ROIContourSequence.(item{1}), 'ReferencedROINumber')
+        n = info.ROIContourSequence.(item{1}).ReferencedROINumber;
+    else
+        n = nb;
+    end
     
     % Update progress bar
     if exist('progress', 'var') && ishandle(progress)
@@ -388,7 +398,7 @@ if exist('progress', 'var') && ishandle(progress)
 end
 
 % Clear temporary files
-clear info n item subitem points slice mask load progress rot;
+clear info n nb item subitem points slice mask load progress rot;
 
 % Catch errors, log, and rethrow
 catch err
