@@ -3,7 +3,7 @@
 by Mark Geurts <mark.w.geurts@gmail.com>
 <br>Copyright &copy; 2016, University of Wisconsin Board of Regents
 
-The DICOM Manipulation Tools for MATLAB are a compilation of functions that read and write DICOM RT files. These tools are used in various applications, including [exit_detector](https://github.com/mwgeurts/exit_detector), [systematic_error](https://github.com/mwgeurts/tomo_extract) and [mvct_dose](https://github.com/mwgeurts/dicom_viewer). MATLAB is a registered trademark of MathWorks Inc. 
+The DICOM Manipulation Tools for MATLAB are a compilation of functions that read and write DICOM RT files. These tools are used in various applications, including [exit_detector](https://github.com/mwgeurts/exit_detector), [systematic_error](https://github.com/mwgeurts/systematic_error and [mvct_dose](https://github.com/mwgeurts/dicom_viewer). MATLAB is a registered trademark of MathWorks Inc. 
 
 
 ## Contents
