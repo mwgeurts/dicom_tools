@@ -303,7 +303,9 @@ info.SamplesPerPixel = 1;
 info.PhotometricInterpretation = 'MONOCHROME2';
 
 % Specify slice location (in mm)
-info.SliceLocation = -info.ImagePositionPatient(3); % mm
+%info.SliceLocation = -info.ImagePositionPatient(3); % mm
+info.SliceLocation = (0:size(varargin{1}.data, 3) - 1) * ...
+    + varargin{1}.width(3) * 10; % mm
 
 % Specify number of frames and grid frame offset vector (in mm)
 info.NumberOfFrames = size(varargin{1}.data, 3);
