@@ -16,6 +16,8 @@ function structures = LoadDICOMStructures(varargin)
 %   varargin{4} (optional): cell array of atlas names, include/exclude 
 %       regex statements, and load flags (if zero, matched structures will 
 %       not be loaded)
+%   varargin{5} (optional): flag indicating whether to ignore frame of
+%       reference (1) or to verify it matches the CT (0, default)
 %
 % The following variable is returned upon succesful completion:
 %   structures: cell array of structure names, color, start, width, 
@@ -124,7 +126,7 @@ for item = fieldnames(info.StructureSetROISequence)'
     load = true;
     
     %% Compare name to atlas
-    if nargin == 4
+    if nargin >= 4 && ~isempty(varargin{4}) && iscell(varargin{4})
         
         % Loop through each atlas structure
         for j = 1:size(varargin{4}, 2)
@@ -165,7 +167,8 @@ for item = fieldnames(info.StructureSetROISequence)'
         % If the structure frame of reference matches the image frame of 
         % reference
         if strcmp(varargin{3}.frameRefUID, info.StructureSetROISequence.(...
-                item{1}).ReferencedFrameOfReferenceUID)
+                item{1}).ReferencedFrameOfReferenceUID) || ...
+                (nargin >= 5 && varargin{5} == 1)
         
             % Store structure name
             structures{n}.name = name;
@@ -366,7 +369,7 @@ for item = fieldnames(info.ROIContourSequence)'
         end
         
         % Compute volumes from mask (note, this will differ from the true
-        % volume as partial voxels are not considered
+        % volume as partial voxels are not considered)
         structures{n}.volume = sum(sum(sum(structures{n}.mask))) * ...
             prod(varargin{3}.width);
        
