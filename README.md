@@ -1,7 +1,7 @@
 ## DICOM Manipulation Tools for MATLAB&reg;
 
 by Mark Geurts <mark.w.geurts@gmail.com>
-<br>Copyright &copy; 2016, University of Wisconsin Board of Regents
+<br>Copyright &copy; 2016-2018, University of Wisconsin Board of Regents
 
 The DICOM Manipulation Tools for MATLAB are a compilation of functions that read and write DICOM RT files. These tools are used in various applications, including [exit_detector](https://github.com/mwgeurts/exit_detector), [systematic_error](https://github.com/mwgeurts/systematic_error) and [mvct_dose](https://github.com/mwgeurts/dicom_viewer). MATLAB is a registered trademark of MathWorks Inc. 
 
@@ -14,6 +14,8 @@ The DICOM Manipulation Tools for MATLAB are a compilation of functions that read
   * [LoadDICOMImages](README.md#loaddicomimages)
   * [LoadDICOMStructures](README.md#loaddicomstructures)
   * [LoadDICOMDose](README.md#loaddicomdose)
+  * [Load3ddose](README.md#load3ddose)
+  * [ScanDICOMPath](README.md#scandicompath)
   * [WriteDICOMImage](README.md#writedicomimage)
   * [WriteDICOMStructures](README.md#writedicomstructures)
   * [WriteDICOMDose](README.md#writedicomdose)
@@ -116,6 +118,68 @@ Below is an example of how this function is used:
 path = '/path/to/files/';
 name = '1.2.826.0.1.3680043.2.200.1679117636.903.83681.339.dcm';
 dose = LoadDICOMDose(path, name);
+```
+
+### Load3ddose
+
+`Load3ddose` loads a DOSEXYZnrc .3ddose file into a MATLAB structure that can be used for manipulation with other functions in this library. The file format was obtained from the DOSEXYZnrc user manual for version PIRS-794revB, https://nrc-cnrc.github.io/EGSnrc/doc/pirs794-dosxyznrc.pdf
+
+The following variables are required for proper execution: 
+
+* path: string containing the path to the DICOM files
+* name: string containing the file name
+
+The following variables are returned upon succesful completion:
+
+* dose: structure containing the image data, error, dimensions, width, and start coordinates. The data and error fields is a three dimensional array of dose values, while the dimensions, width, and start fields are three element vectors.
+
+Below is an example of how this function is used:
+
+```matlab
+path = '/path/to/files/';
+name = 'example.3ddose';
+dose = Load3ddose(path, name);
+```
+
+### ScanDICOMPath
+
+`ScanDICOMPath` recursively searches a provided path for DICOM data and returns a cell array of DICOM images, RT structure sets, RT plan, and RT dose files along with basic header information found within the directory. DICOM files must contain the following minimum tags: SOPInstanceUID, MediaStorageSOPClassUID, Modality, PatientName, and PatientID.
+
+This function will display a progress bar while it loads unless MATLAB was executed with the -nodisplay, -nodesktop, or -noFigureWindows flags or if a `Progress` input option is set to false. If the `DOSEXYZnrc` input option is set to true, this function will also identify DOSEXYZnrc Monte Carlo calculated dose files with a .3ddose extension and add them as RTDOSE options.
+
+The following variables are required for proper execution: 
+
+* path: string containing the path to the DICOM files
+
+Upon successful completion, the function will return an n x 11 cell array, where n is the number of files returned and the columns correspond to the following values:
+
+* Column 1: string containing the file name
+* Column 2: string containing the full path to the file
+* Column 3: string containing the file modality ('CT', 'MR', 'RTDOSE', 'RTPLAN', or 'RTSTRUCT')
+* Column 4: string containing the DICOM instance UID
+* Column 5: string containing the patient name, starting with the last name separated by commas
+* Column 6: string containing the patient's ID
+* Column 7: string containing the frame of reference UID
+* Column 8: string containing the study or referenced study UID
+* Column 9: if RTPLAN or RTDOSE with a corresponding RTPLAN in the list, a string containing the plan name
+* Column 10: if RTDOSE, the dose type ('PLAN' or 'BEAM')
+* Column 11: if RTPLAN, a cell array of beam names, or if a BEAM RTDOSE, the corresponding beam name 
+
+Below are examples of how this function is used:
+
+```matlab
+% Scan test_directory for DICOM files
+list = ScanDICOMPath('../test_directory');
+
+% Re-scan, hiding the progress bar and including DOSEXYZnrc files
+list = ScanDICOMPath('../test_directory', 'Progress', false, ...
+    'DOSEXYZnrc', true);
+
+% List all CT file names found within the list
+list(ismember(t(:,3), 'CT'))
+
+% List all unique Frame of Reference UIDs in the list
+unique(list(:,7))
 ```
 
 ### WriteDICOMImage
