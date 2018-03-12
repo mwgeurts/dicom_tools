@@ -149,7 +149,7 @@ This function will display a progress bar while it loads unless MATLAB was execu
 
 The following variables are required for proper execution: 
 
-* path: string containing the path to the DICOM files
+* path: string containing the path to the DICOM files, cell array of files, or path to a single file
 
 Upon successful completion, the function will return an n x 11 cell array, where n is the number of files returned and the columns correspond to the following values:
 

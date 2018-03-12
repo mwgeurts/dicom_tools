@@ -12,7 +12,11 @@ function array = ScanDICOMPath(path, varargin)
 % input option is set to true, this function will also identify DOSEXYZnrc 
 % Monte Carlo calculated dose files with a .3ddose extension and add them 
 % as RTDOSE options.
-% 
+%
+% The following variables are required for proper execution: 
+%   path: string containing the path to the DICOM files, cell array of 
+%       files, or path to a single file
+%
 % Upon successful completion, the function will return an n x 11 cell
 % array, where n is the number of files returned and the columns correspond
 % to the following values:
@@ -92,17 +96,20 @@ end
 
 % Scan the directory for DICOM files
 if exist('Event', 'file') == 2
-    Event(['Scanning ', path, ' for DICOM files']);
+    Event('Scanning path for DICOM files');
     t = tic;
 end
 
-% Retrieve folder contents of selected directory
-list = dir(fullfile(path, '**'));
+% Set list based on format of provided files
+if iscell(path)
+    list = path;
+elseif isfolder(varargin{2})
+    list = dir(fullfile(path, '**'));
+else
+    list = {path};
+end
 
-% Initialize folder counter
-i = 0;
-
-% Initialize table of DICOM files
+% Initialize return array of DICOM files
 array = cell(0,11);
 
 % Loop through each folder, subfolder
