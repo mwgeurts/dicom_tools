@@ -103,7 +103,7 @@ end
 % Set list based on format of provided files
 if iscell(path)
     list = path;
-elseif isfolder(varargin{2})
+elseif isfolder(path)
     list = dir(fullfile(path, '**'));
 else
     list = {path};
