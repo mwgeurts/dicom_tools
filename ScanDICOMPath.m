@@ -133,7 +133,7 @@ for i = 1:length(list)
             'IgnoreCase', true)
         
         % Separate file path, name
-        [p, n, e] = fileparts(fullfile(path, list(i).name));
+        [p, n, e] = fileparts(fullfile(list(i).folder, list(i).name));
         
         % Add file as an RTDOSE image with unique DICOM UID
         array = [array; horzcat([n e], p, 'RTDOSE', dicomuid, cell(1,7))]; %#ok<*AGROW>
@@ -142,12 +142,12 @@ for i = 1:length(list)
     else
 
         % Separate file path, name
-        [p, n, e] = fileparts(fullfile(path, list(i).name));
+        [p, n, e] = fileparts(fullfile(list(i).folder, list(i).name));
         
         % Attempt to parse the DICOM header
         try
             % Execute dicominfo
-            info = dicominfo(fullfile(path, list(i).name));
+            info = dicominfo(fullfile(list(i).folder, list(i).name));
 
             % Verify storage class field exists
             if ~isfield(info, 'MediaStorageSOPClassUID')
