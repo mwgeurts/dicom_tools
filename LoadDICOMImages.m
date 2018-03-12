@@ -30,7 +30,7 @@ function image = LoadDICOMImages(path, names)
 %   image = LoadDICOMImages(path, names);
 %
 % Author: Mark Geurts, mark.w.geurts@gmail.com
-% Copyright (C) 2016 University of Wisconsin Board of Regents
+% Copyright (C) 2016-2018 University of Wisconsin Board of Regents
 %
 % This program is free software: you can redistribute it and/or modify it 
 % under the terms of the GNU General Public License as published by the  

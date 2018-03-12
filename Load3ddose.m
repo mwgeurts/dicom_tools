@@ -4,8 +4,6 @@ function dose = Load3ddose(path, name)
 % file format was obtained from the DOSEXYZnrc user manual for version 
 % PIRS-794revB, https://nrc-cnrc.github.io/EGSnrc/doc/pirs794-dosxyznrc.pdf
 %
-% This function will re-sample non-uniformly spaced dose 
-%
 % The following variables are required for proper execution: 
 %   path: string containing the path to the DICOM files
 %   name: string containing the file name
@@ -23,7 +21,7 @@ function dose = Load3ddose(path, name)
 %   dose = Load3ddose(path, name);
 %
 % Author: Mark Geurts, mark.w.geurts@gmail.com
-% Copyright (C) 2018 University of Wisconsin Board of Regents
+% Copyright (C) 2017-2018 University of Wisconsin Board of Regents
 %
 % This program is free software: you can redistribute it and/or modify it 
 % under the terms of the GNU General Public License as published by the  
