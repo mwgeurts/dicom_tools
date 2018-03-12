@@ -97,7 +97,7 @@ if exist('Event', 'file') == 2
 end
 
 % Retrieve folder contents of selected directory
-list = dir(path);
+list = dir(fullfile(path, '**'));
 
 % Initialize folder counter
 i = 0;
@@ -105,11 +105,8 @@ i = 0;
 % Initialize table of DICOM files
 array = cell(0,11);
 
-% Start recursive loop through each folder, subfolder
-while i < length(list)
-
-    % Increment current folder being analyzed
-    i = i + 1;
+% Loop through each folder, subfolder
+for i = 1:length(list)
 
     % Update waitbar
     if exist('progress', 'var') && ishandle(progress) && opt.Progress
@@ -122,34 +119,11 @@ while i < length(list)
 
     % Otherwise, if the folder content is a subfolder    
     elseif list(i).isdir == 1
-
-        % Retrieve the subfolder contents
-        sublist = dir(fullfile(path, list(i).name));
-
-        % Look through the subfolder contents
-        for j = 1:size(sublist, 1)
-
-            % If the subfolder content is . or .., skip to next subfolder 
-            if strcmp(sublist(j).name, '.') || ...
-                    strcmp(sublist(j).name, '..')
-                continue
-            else
-
-                % Otherwise, replace the subfolder name with its full
-                % reference
-                sublist(j).name = fullfile(list(i).name, ...
-                    sublist(j).name);
-            end
-        end
-
-        % Append the subfolder contents to the main folder list
-        list = vertcat(list, sublist);
-
-        % Clear temporary variable
-        clear sublist;
+        continue;
 
     % See if this is a .3ddose file
-    elseif opt.DOSEXYZnrc && ~isempty(regexpi(list(i).name, '\.3ddose$'))
+    elseif opt.DOSEXYZnrc && endsWith(list(i).name, '.3ddose', ...
+            'IgnoreCase', true)
         
         % Separate file path, name
         [p, n, e] = fileparts(fullfile(path, list(i).name));
