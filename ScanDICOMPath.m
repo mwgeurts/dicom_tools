@@ -34,7 +34,11 @@ function array = ScanDICOMPath(path, varargin)
 %       a string containing the plan name
 %   Column 10: if RTDOSE, the dose type ('PLAN' or 'BEAM')
 %   Column 11: if RTPLAN, a cell array of beam names, or if a BEAM RTDOSE,
-%       the corresponding beam name 
+%       the corresponding beam name
+%   Column 12: if RTPLAN, a cell array of machine names, or if RTDOSE, the
+%       corresponding machine name
+%   Column 13: if RTPLAN, a cell array of beam energies, or if RTDOSE, the
+%       corresponding energy
 % 
 % Below are examples of how this function is used:
 %
@@ -110,7 +114,7 @@ else
 end
 
 % Initialize return array of DICOM files
-array = cell(0,11);
+array = cell(0,13);
 
 % Loop through each folder, subfolder
 for i = 1:length(list)
@@ -136,7 +140,7 @@ for i = 1:length(list)
         [p, n, e] = fileparts(fullfile(list(i).folder, list(i).name));
         
         % Add file as an RTDOSE image with unique DICOM UID
-        array = [array; horzcat([n e], p, 'RTDOSE', dicomuid, cell(1,7))]; %#ok<*AGROW>
+        array = [array; horzcat([n e], p, 'RTDOSE', dicomuid, cell(1,9))]; %#ok<*AGROW>
         
     % Otherwise, see if the file is a DICOM file
     else
@@ -157,7 +161,7 @@ for i = 1:length(list)
             % Store basic contents
             new = horzcat([n e], p, info.Modality, info.SOPInstanceUID, ...
                     strjoin(struct2cell(info.PatientName), ', '), ...
-                    info.PatientID, cell(1,5));
+                    info.PatientID, cell(1,7));
 
             % If CT
             if strcmp(info.MediaStorageSOPClassUID, ...
@@ -260,7 +264,10 @@ for i = 1:length(list)
                         end
                     end
                     
-                    % Now go replace beam numbers with names
+                    % Now go replace beam numbers with names and add
+                    % machine/energy
+                    new{12} = cell(size(new{11}));
+                    new{13} = cell(size(new{11}));
                     beams = fieldnames(info.BeamSequence);
                     for j = 1:length(beams)
                         for k = 1:size(new{11},1)
@@ -270,6 +277,11 @@ for i = 1:length(list)
                                         .(beams{j}).BeamNumber
                                     new{11}{k,l} = info.BeamSequence...
                                         .(beams{j}).BeamName;
+                                    new{12}{k,l} = info.BeamSequence...
+                                        .(beams{j}).TreatmentMachineName;
+                                    new{13}{k,l} = info.BeamSequence...
+                                        .(beams{j}).ControlPointSequence...
+                                        .Item_1.NominalBeamEnergy;
                                 end
                             end
                         end    
@@ -291,17 +303,28 @@ end
 for i = 1:size(array,1)
     
     % Match plan UID to UID of other DICOM files
-    [m,idx] = ismember(array{i,9}, array(:,4));
-    
-    % If RTDOSE is a BEAM, match beam name
-    if m && strcmp(array{i,3}, 'RTDOSE') && strcmp(array{i,10}, 'BEAM') ...
-            && ~isempty(array{i,11})
-        array{i,11} = array{idx,11}{array{i,11}{1}, array{i,11}{2}};
-    end
-    
-    % If RTDOSE
-    if m && strcmp(array{i,3}, 'RTDOSE')
-        array{i,9} = array{idx,9};
+    if ~isempty(array{i,9})
+        [m,idx] = ismember(array{i,9}, array(:,4));
+
+        % If RTDOSE is BEAM, match beam name, machine, and energy
+        if m && strcmp(array{i,3}, 'RTDOSE') && ...
+                strcmp(array{i,10}, 'BEAM') && ~isempty(array{i,11})
+            array{i,13} = array{idx,13}{array{i,11}{1}, array{i,11}{2}};
+            array{i,12} = array{idx,12}{array{i,11}{1}, array{i,11}{2}};
+            array{i,11} = array{idx,11}{array{i,11}{1}, array{i,11}{2}};
+        end
+        
+        % If RTDOSE is PLAN, duplicate PLAN cell arrays
+        if m && strcmp(array{i,3}, 'RTDOSE') && strcmp(array{i,10}, 'PLAN')
+            array{i,13} = array{idx,13};
+            array{i,12} = array{idx,12};
+            array{i,11} = array{idx,11};
+        end
+        
+        % If RTDOSE
+        if m && strcmp(array{i,3}, 'RTDOSE')
+            array{i,9} = array{idx,9};
+        end
     end
 end
 
