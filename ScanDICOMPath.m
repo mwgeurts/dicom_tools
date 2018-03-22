@@ -109,8 +109,14 @@ if iscell(path)
     list = path;
 elseif isfolder(path)
     list = dir(fullfile(path, '**'));
+
+% If not, throw an error
 else
-    list = {path};
+    if exist('Event', 'file') == 2
+        Event('The provided input is not a folder', 'ERROR');
+    else
+        error('The provided input is not a folder');
+    end
 end
 
 % Initialize return array of DICOM files
@@ -279,9 +285,21 @@ for i = 1:length(list)
                                         .(beams{j}).BeamName;
                                     new{12}{k,l} = info.BeamSequence...
                                         .(beams{j}).TreatmentMachineName;
-                                    new{13}{k,l} = info.BeamSequence...
+                                    new{13}{k,l} = num2str(info.BeamSequence...
                                         .(beams{j}).ControlPointSequence...
-                                        .Item_1.NominalBeamEnergy;
+                                        .Item_1.NominalBeamEnergy);
+                                    
+                                    % Add non-standard identifier
+                                    if isfield(info.BeamSequence...
+                                            .(beams{j}), 'FluenceMode') && ...
+                                            isfield(info.BeamSequence...
+                                            .(beams{j}), 'FluenceModeID')&& ...
+                                            strcmp(info.BeamSequence.(beams{j})...
+                                            .FluenceMode, 'NON_STANDARD')
+                                        new{13}{k,l} = [new{13}{k,l}, ...
+                                            info.BeamSequence.(beams{j})...
+                                            .FluenceModeID];
+                                    end
                                 end
                             end
                         end    
