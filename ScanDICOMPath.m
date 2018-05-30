@@ -353,6 +353,7 @@ for i = 1:size(array,1)
         
         % If RTDOSE is PLAN, duplicate PLAN cell arrays
         if m && strcmp(array{i,3}, 'RTDOSE') && strcmp(array{i,10}, 'PLAN')
+            array{i,14} = array{idx,14};
             array{i,13} = array{idx,13};
             array{i,12} = array{idx,12};
             array{i,11} = array{idx,11};
