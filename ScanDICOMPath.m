@@ -14,8 +14,8 @@ function array = ScanDICOMPath(path, varargin)
 % as RTDOSE options.
 %
 % The following variables are required for proper execution: 
-%   path: string containing the path to the DICOM files, cell array of 
-%       files, or path to a single file
+%   path: string containing the path to the DICOM files, structure of 
+%       files (see dir command for format), or path to a single file
 %
 % Upon successful completion, the function will return an n x 11 cell
 % array, where n is the number of files returned and the columns correspond
@@ -39,6 +39,9 @@ function array = ScanDICOMPath(path, varargin)
 %       corresponding machine name
 %   Column 13: if RTPLAN, a cell array of beam energies, or if RTDOSE, the
 %       corresponding energy
+%   Column 14: if RTPLAN, and a PatientSetupSequence exists, an array of 
+%       corresponding SetupDeviceParameter values (for Tomo, these are the 
+%       red laser positions)
 % 
 % Below are examples of how this function is used:
 %
@@ -105,7 +108,7 @@ if exist('Event', 'file') == 2
 end
 
 % Set list based on format of provided files
-if iscell(path)
+if isstruct(path)
     list = path;
 elseif isfolder(path)
     list = dir(fullfile(path, '**'));
@@ -120,7 +123,7 @@ else
 end
 
 % Initialize return array of DICOM files
-array = cell(0,13);
+array = cell(0,14);
 
 % Loop through each folder, subfolder
 for i = 1:length(list)
@@ -146,7 +149,7 @@ for i = 1:length(list)
         [p, n, e] = fileparts(fullfile(list(i).folder, list(i).name));
         
         % Add file as an RTDOSE image with unique DICOM UID
-        array = [array; horzcat([n e], p, 'RTDOSE', dicomuid, cell(1,9))]; %#ok<*AGROW>
+        array = [array; horzcat([n e], p, 'RTDOSE', dicomuid, cell(1,10))]; %#ok<*AGROW>
         
     % Otherwise, see if the file is a DICOM file
     else
@@ -167,7 +170,7 @@ for i = 1:length(list)
             % Store basic contents
             new = horzcat([n e], p, info.Modality, info.SOPInstanceUID, ...
                     strjoin(struct2cell(info.PatientName), ', '), ...
-                    info.PatientID, cell(1,7));
+                    info.PatientID, cell(1,8));
 
             % If CT
             if strcmp(info.MediaStorageSOPClassUID, ...
@@ -303,6 +306,22 @@ for i = 1:length(list)
                                 end
                             end
                         end    
+                    end
+                end
+                
+                % Add PatientSetupSequence
+                if isfield(info, 'PatientSetupSequence') && ...
+                        isfield(info.PatientSetupSequence, 'Item_1') && ...
+                        isfield(info.PatientSetupSequence.Item_1, ...
+                        'SetupDeviceSequence')
+                    items = fieldnames(info.PatientSetupSequence.Item_1...
+                        .SetupDeviceSequence);
+                    
+                    new{14} = zeros(length(items), 1);
+                    for j = 1:length(items)
+                        new{14}(j) = info.PatientSetupSequence.Item_1...
+                            .SetupDeviceSequence.(items{j})...
+                            .SetupDeviceParameter;
                     end
                 end
                  
