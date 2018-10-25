@@ -150,25 +150,15 @@ for i = 1:length(names)
     % multiple DICOM studies may be present in the same folder (not
     % currently supported)
     elseif ~strcmp(image.studyUID, info.StudyInstanceUID)
-        if exist('Event', 'file') == 2
-            Event(['Multiple DICOM Study Instance UIDs were found in ', ...
-                'this list.  Please select only one study.'], 'ERROR');
-        else
-            error(['Multiple DICOM Study Instance UIDs were found in ', ...
-                'this list.  Please select only one study.']);
-        end
+        error(['Multiple DICOM Study Instance UIDs were found in ', ...
+            'this list.  Please select only one study.']);
         
     % Otherwise, if this file's series UID does not match the others,
     % multiple DICOM series may be present in the same folder (not
     % currently supported)
     elseif ~strcmp(image.seriesUID,info.SeriesInstanceUID) 
-        if exist('Event', 'file') == 2
-            Event(['Multiple DICOM Series Instance UIDs were found in ', ...
-                'this list.  Please select only one series.'], 'ERROR');
-        else
-            error(['Multiple DICOM Series Instance UIDs were found in ', ...
-                'this list.  Please select only one series.']);
-        end
+        error(['Multiple DICOM Series Instance UIDs were found in ', ...
+            'this list.  Please select only one series.']);
     end
     
     % Append this slice's instance UID
@@ -191,6 +181,13 @@ end
 if exist('progress', 'var') && ishandle(progress)
     waitbar((length(names)+1)/(length(names)+2), progress, ...
         'Processing images');
+end
+
+% Verify info is set (if not no valid DICOM files were found)
+if ~exist('info','var')
+    error(['No valid DICOM images were found in the provided directory.', ...
+        'Try running dicominfo() on the target file to see what error ', ...
+        'occurred.']);
 end
 
 % Set image type based on series description (for MVCTs) or DICOM
@@ -259,17 +256,9 @@ end
 
 % If the position wasn't identified, error
 if ~isfield(image, 'position')
-    
-    if exist('Event', 'file') == 2
-        Event('The patient position could not be determined', 'ERROR');
-    else
-        error('The patient position could not be determined');
-    end
-else
-    % Log orientation
-    if exist('Event', 'file') == 2
-        Event(['Patient position identified as ', image.position]);
-    end
+    error('The patient position could not be determined');
+elseif exist('Event', 'file') == 2
+    Event(['Patient position identified as ', image.position]);
 end
 
 % Compute slice location differences
@@ -277,13 +266,8 @@ widths = diff(sliceLocations(indices));
 
 % Verify that slice locations do not differ significantly (1%)
 if abs(max(widths) - min(widths))/mean(widths) > 0.01
-    if exist('Event', 'file') == 2
-            Event(['Slice positions differ by more than 1%, suggesting ', ...
-                'variable slice spacing. This is not supported.'], 'ERROR');
-        else
-            error(['Slice positions differ by more than 1%, suggesting ', ...
-                'variable slice spacing. This is not supported.']);
-    end
+    error(['Slice positions differ by more than 1%, suggesting ', ...
+        'variable slice spacing. This is not supported.']);
 end
 
 % Store mean slice position difference as IEC-Y width, in cm
@@ -336,11 +320,7 @@ if isfield(image, 'dimensions')
 
 % Otherwise, warn user
 else
-    if exist('Event', 'file') == 2
-        Event('DICOM image data could not be parsed', 'ERROR');
-    else
-        error('DICOM image data could not be parsed');
-    end
+    error('DICOM image data could not be parsed');
 end
 
 % Close waitbar
