@@ -109,10 +109,13 @@ else
 end
 
 % Specify structure set label (optional)
-if nargin == 3 && isfield(varargin{3}, 'structureLabel')
+%Cyril: small change since not optional in Eclipse !
+%if nargin == 3 && isfield(varargin{3}, 'structureLabel')
+if nargin == 3 && isfield(varargin{3}, 'structureLabel') && ...
+        ~isempty(varargin{3}.structureLabel)
     info.StructureSetLabel = varargin{3}.structureLabel;
 else
-    info.StructureSetLabel = '';
+    info.StructureSetLabel = 'Tomo Structures';
 end
 
 % Specify patient info (assume that if name isn't provided, nothing is
@@ -244,26 +247,30 @@ else
         .SeriesInstanceUID = dicomuid;
 end
 
+%Cyril : ajout du TAG (0008,1150) UI =CTImageStorage
+%remplace le snippet original
 % Specify referenced image instance UIDs
 if nargin == 3 && isfield(varargin{3}, 'instanceUIDs')
-    
+
     % Loop through image instance UIDs
     for i = 1:length(varargin{3}.instanceUIDs)
-        
-        % Specify referenced class UID if one exists
-        if nargin == 3 && isfield(varargin{3}, 'classUID')
-            info.ReferencedFrameOfReferenceSequence.Item_1...
-                .RTReferencedStudySequence.Item_1...
-                .RTReferencedSeriesSequence.Item_1.ContourImageSequence...
-                .(sprintf('Item_%i', i)).ReferencedSOPClassUID = ...
-                varargin{3}.classUID;
-        end
-        
+
+        % Explicitly reference CT Image Storage
+        info.ReferencedFrameOfReferenceSequence.Item_1...
+            .RTReferencedStudySequence.Item_1...
+            .RTReferencedSeriesSequence.Item_1...
+            .ContourImageSequence.(sprintf('Item_%i', i))...
+            .ReferencedSOPClassUID = ...
+            '1.2.840.10008.5.1.4.1.1.2';
+
         % Specify contour sequence reference UID
         info.ReferencedFrameOfReferenceSequence.Item_1...
-            .RTReferencedStudySequence.Item_1.RTReferencedSeriesSequence...
-            .Item_1.ContourImageSequence.(sprintf('Item_%i', i))...
-            .ReferencedSOPInstanceUID = varargin{3}.instanceUIDs{i};
+            .RTReferencedStudySequence.Item_1...
+            .RTReferencedSeriesSequence.Item_1...
+            .ContourImageSequence.(sprintf('Item_%i', i))...
+            .ReferencedSOPInstanceUID = ...
+            varargin{3}.instanceUIDs{i};
+
     end
 end
 
@@ -283,6 +290,22 @@ if isfield(varargin{3}, 'position')
     end
 end
 
+%Cyril Compute the DICOM Z position of each referenced CT Image.
+%This reproduces the positioning logic used in WriteDicomImage
+ctImageZ = [];
+if nargin == 3 &&...
+        isfield(varargin{3}, 'imageStart') &&...
+        isfield(varargin{3}, 'imageWidth') &&...
+        isfield(varargin{3}, 'instanceUIDs')
+    numberOfCTImages = length(varargin{3}.instanceUIDs);
+    ctImageZ = -rot(3) * ...
+        (varargin{3}.imageStart(3) + ...
+        (0:numberOfCTImages-1) * varargin{3}.imageWidth(3)) * 10;
+end
+%%%%%
+
+
+
 % Loop through structures cell array
 for i = 1:length(varargin{1})
 
@@ -299,16 +322,54 @@ for i = 1:length(varargin{1})
         info.ReferencedFrameOfReferenceSequence.Item_1.FrameOfReferenceUID;
     info.StructureSetROISequence.(sprintf('Item_%i', i)).ROIName = ...
         varargin{1}{i}.name;
+    %Cyril : ajout ROIGenerationAlgorithm
+    info.StructureSetROISequence.(sprintf('Item_%i', i))...
+        .ROIGenerationAlgorithm = 'MANUAL';
 
     % Create structure ROI contour sequence entry
     info.ROIContourSequence.(sprintf('Item_%i', i)).ROIDisplayColor = ...
         varargin{1}{i}.color';
-    info.ROIContourSequence.(sprintf('Item_%i', i))...
-        .ReferencedROINumber = i;
+    
+    %Cyril - move this for correct tag order
+    % info.ROIContourSequence.(sprintf('Item_%i', i))...
+    %    .ReferencedROINumber = i;
     
     % Loop through points cell array
     for j = 1:length(varargin{1}{i}.points)
-        
+
+        %%Cyril Add reference CT to each contour
+        % Reference the CT image corresponding to this contour
+        if ~isempty(ctImageZ) && size(varargin{1}{i}.points{j}, 1) > 0
+
+            % Convert the contour Z coordinate from cm to DICOM patient mm
+            contourZ = varargin{1}{i}.points{j}(1,3) * rot(3) * 10;
+
+            % Find the CT image whose DICOM Z position is closest
+            [zDifference, ctIndex] = min(abs(ctImageZ - contourZ));
+
+            % Warn if the contour is unusually far from the selected CT slice
+            zTolerance = abs(varargin{3}.imageWidth(3) * 10) / 2 + 0.01;
+
+            if zDifference > zTolerance
+                warning(['Contour %i of structure %i is %.3f mm from the ', ...
+                    'nearest CT image.'], j, i, zDifference);
+            end
+
+            % Specify referenced CT SOP class
+            info.ROIContourSequence.(sprintf('Item_%i', i))...
+                .ContourSequence.(sprintf('Item_%i', j))...
+                .ContourImageSequence.Item_1.ReferencedSOPClassUID = ...
+                '1.2.840.10008.5.1.4.1.1.2';
+
+            % Specify referenced CT SOP instance
+            info.ROIContourSequence.(sprintf('Item_%i', i))...
+                .ContourSequence.(sprintf('Item_%i', j))...
+                .ContourImageSequence.Item_1.ReferencedSOPInstanceUID = ...
+                varargin{3}.instanceUIDs{ctIndex};
+        end
+
+        %% 
+
         % Specify sequence contour geometric type
         info.ROIContourSequence.(sprintf('Item_%i', i))...
             .ContourSequence.(sprintf('Item_%i', j)).ContourGeometricType = ...
@@ -340,6 +401,13 @@ for i = 1:length(varargin{1})
         end
     end
     
+    %Cyril: Aff ReferencedROINumber after ContourSequence so that tags are
+    %in ascending DICOM tag order:
+    %(3006,002A), (3006,0040), (3006,0084)
+    info.ROIContourSequence.(sprintf('Item_%i', i))...
+        .ReferencedROINumber = i;
+    %%
+
     % Create ROI observations sequence
     info.RTROIObservationsSequence.(sprintf('Item_%i', i))...
         .ObservationNumber = i;

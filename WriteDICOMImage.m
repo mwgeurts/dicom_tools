@@ -136,7 +136,9 @@ info.AcquisitionDate = datestr(t, 'yyyymmdd');
 info.AcquisitionTime = datestr(t, 'HHMMSS');
 
 % Specifty image type
-info.ImageType = 'ORIGINAL/PRIMARY/AXIAL';
+%Cyril : change for what is done by TARW
+% info.ImageType = 'ORIGINAL/PRIMARY/AXIAL';
+info.ImageType = 'ORIGINAL\SECONDARY\AXIAL'
 
 % Specify manufacturer, model, and software version
 info.Manufacturer = ['MATLAB ', version];
@@ -333,10 +335,12 @@ for i = 1:size(varargin{1}.data, 3)
         info.MediaStorageSOPInstanceUID = dicomuid;
     end
     
-    % Specify return variable
-    if nargout == 1
-        varargout{1}{i} = info.MediaStorageSOPInstanceUID;
-    end
+    %%Cyril : remplacé par le bloc qui lie le SOPInstanceUID 
+    % à celui du structure Set
+    %% Specify return variable
+    %if nargout == 1
+    %    varargout{1}{i} = info.MediaStorageSOPInstanceUID;
+    %end
     
     % Copy instance UID from media storage UID
     info.SOPInstanceUID = info.MediaStorageSOPInstanceUID;
@@ -358,22 +362,47 @@ for i = 1:size(varargin{1}.data, 3)
     % Update image position to slice location
     info.ImagePositionPatient(3) = -info.SliceLocation;
     
-    % Write DICOM file using dicomwrite()
-    status = dicomwrite(flip(rot90(uint16(varargin{1}.data(:,:,i)), 3), 2), ...
-        [varargin{2}, sprintf('_%03i.dcm', i)], info, ...
-        'CompressionMode', 'None', 'CreateMode', 'Copy', 'Endian', ...
-        'ieee-le');
-    
-    % If status is not empty, break loop
-    if ~isempty(status)
-        break;
-    end
+    % Build output filename
+outputFilename = [varargin{2}, sprintf('_%03i.dcm', i)];
+
+% Write DICOM file using dicomwrite()
+status = dicomwrite(...
+    flip(rot90(uint16(varargin{1}.data(:,:,i)), 3), 2), ...
+    outputFilename, info, ...
+    'CompressionMode', 'None', ...
+    'CreateMode', 'Copy', ...
+    'Endian', 'ieee-le');
+
+% If status is not empty, break loop
+if ~isempty(status)
+    break;
+end
+
+% Cyril:
+% Read the file back because dicomwrite can generate a new SOP Instance UID.
+writtenInfo = dicominfo(outputFilename);
+
+% Return the SOP Instance UID actually written to the CT file
+if nargout == 1
+    varargout{1}{i} = writtenInfo.SOPInstanceUID;
+end
+
+% Keep info synchronized with the UID actually written
+info.MediaStorageSOPInstanceUID = writtenInfo.SOPInstanceUID;
+info.SOPInstanceUID = writtenInfo.SOPInstanceUID;
+
+% Log the UID actually present in the written file
+if exist('Event', 'file') == 2
+    Event(sprintf('Image %i written with actual SOPInstanceUID %s', ...
+        i, writtenInfo.SOPInstanceUID));
+end
+
     
     % Log UID
-    if exist('Event', 'file') == 2
-        Event(sprintf('Image %i written with SOPInstanceUID %s', i, ...
-            info.SOPInstanceUID));
-    end
+    %if exist('Event', 'file') == 2
+     %   Event(sprintf('Image %i written with SOPInstanceUID %s', i, ...
+     %       info.SOPInstanceUID));
+    %end
 end
 
 % Check write status
