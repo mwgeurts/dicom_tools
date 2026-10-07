@@ -309,6 +309,8 @@ info.SliceLocation = -info.ImagePositionPatient(3); % mm
 info.NumberOfFrames = size(varargin{1}.data, 3);
 info.GridFrameOffsetVector = (0:size(varargin{1}.data, 3) - 1) * ...
     -varargin{1}.width(3) * 10; % mm
+%Cyril: Ajout pour éviter warning Eclipse
+info.FrameIncrementPointer = [12292 12];
 
 % Specify number of rows/columns
 info.Rows = size(varargin{1}.data, 2);
@@ -324,7 +326,9 @@ info.HighBit = 15;
 info.PixelRepresentation = 0;
 
 % Specify dose information
-info.DoseUnits = 'Gy';
+%info.DoseUnits = 'Gy';
+%Cyril: must be in CAPS
+info.DoseUnits = 'GY';
 info.DoseType = 'PHYSICAL';
 info.TissueHeterogeneityCorrection = 'ROI_OVERRIDE';
 
